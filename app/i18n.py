@@ -70,10 +70,10 @@ T = {
     "kn_subdir": ("โฟลเดอร์ย่อย", "Subfolder"),
     "kn_folder_label": ("โฟลเดอร์", "Folder"),
     "browse": ("เลือก…", "Browse…"),
-    "kn_github_note": ("ทุกคนต้องมีสิทธิ์อ่าน repo นี้ และใส่ GitHub token ในหน้าตั้งค่า (ต้องมีสิทธิ์ Contents: Read and write เพื่อเพิ่มข้อมูล) "
+    "kn_github_note": ("ทุกคนต้องได้รับเชิญเข้า repo นี้ และใส่ GitHub token ในหน้าตั้งค่า "
                        "อย่าใช้ repo public เพราะข้อมูลภายในจะเปิดเผย",
-                       "Everyone needs read access to this repository and a GitHub token in Settings "
-                       "(Contents: Read and write to add notes). Never use a public repository for internal data."),
+                       "Everyone must be invited to this repository and enter a GitHub token in Settings. "
+                       "Never use a public repository for internal data."),
     "kn_folder_note": ("ทุกคนเลือกโฟลเดอร์ที่ sync ร่วมกัน ข้อมูลไม่มีประวัติการแก้ไข", "Everyone picks the same synced folder. No edit history."),
     "kn_add": ("เพิ่มข้อมูล", "Add note"),
     "kn_list_empty": ("ยังไม่มีบันทึก กด “อัปเดตข้อมูล” เพื่อดึงของทีม หรือ “เพิ่มข้อมูล”",
@@ -117,12 +117,14 @@ T = {
                     "<li>Remember for the team: year-end closing must be done before 30 Sep.</li></ul>"),
     # settings
     "st_token": ("GitHub token", "GitHub token"),
-    "st_token_hint": ("ไม่บังคับสำหรับ repo public (แต่ช่วยไม่ให้ติด rate limit) จำเป็นสำหรับ repo ข้อมูลทีมแบบ private "
-                      "<a href='https://github.com/settings/personal-access-tokens/new'>สร้าง fine-grained token</a> "
-                      "ให้สิทธิ์ Contents: Read and write เฉพาะ repo ข้อมูลทีม",
-                      "Optional for public repositories (avoids rate limits); required for a private knowledge repository. "
-                      "<a href='https://github.com/settings/personal-access-tokens/new'>Create a fine-grained token</a> "
-                      "with Contents: Read and write on the knowledge repository only."),
+    "st_token_hint": ("ไม่บังคับสำหรับ repo public (แต่ช่วยไม่ให้ติด rate limit) จำเป็นสำหรับ repo ข้อมูลทีมแบบ private<br>"
+                      "• repo ของบัญชีคนอื่น: <a href='https://github.com/settings/tokens/new?scopes=repo&description=Repo%20Brain'>สร้าง classic token</a> สิทธิ์ <b>repo</b><br>"
+                      "• repo ของคุณเองหรือของ organization: <a href='https://github.com/settings/personal-access-tokens/new'>fine-grained token</a> "
+                      "สิทธิ์ Contents: Read and write เฉพาะ repo นั้น (ปลอดภัยกว่า)",
+                      "Optional for public repositories (avoids rate limits); required for a private knowledge repository.<br>"
+                      "• Repository owned by another person: <a href='https://github.com/settings/tokens/new?scopes=repo&description=Repo%20Brain'>create a classic token</a> with the <b>repo</b> scope<br>"
+                      "• Your own or an organization's repository: a <a href='https://github.com/settings/personal-access-tokens/new'>fine-grained token</a> "
+                      "with Contents: Read and write on that repository only (safer)"),
     "st_show": ("แสดง", "Show"),
     "st_test": ("ทดสอบ", "Test"),
     "st_token_ok": ("ใช้ได้ — เข้าสู่ระบบเป็น {login}", "Works — signed in as {login}"),

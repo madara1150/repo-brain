@@ -86,7 +86,9 @@ Claude ใช้เครื่องมือเหล่านี้ได้:
    <img src="docs/screenshots/claude-th.png" width="760" alt="หน้าเชื่อมกับ Claude Desktop">
 
 5. **ตั้งค่าข้อมูลทีม** (ทำครั้งเดียว ใช้ค่าเดียวกันทั้งทีม)
-   - **GitHub repo แบบ private (แนะนำ)**: สร้าง repo private เช่น `team-knowledge` เชิญทุกคนในทีม ให้แต่ละคนสร้าง [fine-grained token](https://github.com/settings/personal-access-tokens/new) ที่มีสิทธิ์ *Contents: Read and write* เฉพาะ repo นี้ แล้วใส่ในหน้า **ตั้งค่า**
+   - **GitHub repo แบบ private (แนะนำ)**: สร้าง repo private เช่น `team-knowledge` แล้วเชิญทุกคนในทีมเป็น collaborator ให้แต่ละคนสร้าง GitHub token แล้วใส่ในหน้า **ตั้งค่า**
+     - repo อยู่ใต้บัญชีของคนอื่น: ใช้ [classic token](https://github.com/settings/tokens/new?scopes=repo&description=Repo%20Brain) สิทธิ์ `repo` (fine-grained token ใช้กับ repo ของบัญชีคนอื่นไม่ได้)
+     - repo ของคุณเอง หรือ repo ใน organization: ใช้ [fine-grained token](https://github.com/settings/personal-access-tokens/new) สิทธิ์ *Contents: Read and write* เฉพาะ repo นี้ จะปลอดภัยกว่า ถ้าทีมใหญ่ แนะนำให้ย้าย repo ไปไว้ใน organization
    - **โฟลเดอร์แชร์**: ทุกคนเลือกโฟลเดอร์เดียวกันที่ sync ด้วย Google Drive / OneDrive / NAS
 6. **ถามได้เลย** ใน Claude Desktop เช่น
    - “model `purchase.request` ถูก inherit ที่โมดูลไหนบ้าง”
@@ -206,7 +208,9 @@ You also need [Claude Desktop](https://claude.ai/download).
    <img src="docs/screenshots/claude-en.png" width="760" alt="Connect to Claude Desktop tab">
 
 5. **Set up team knowledge** (once; the whole team uses the same setting)
-   - **Private GitHub repository (recommended)**: create a private repository such as `team-knowledge`, invite the team, and have each person create a [fine-grained token](https://github.com/settings/personal-access-tokens/new) with *Contents: Read and write* on that repository only, entered in **Settings**.
+   - **Private GitHub repository (recommended)**: create a private repository such as `team-knowledge`, invite the team as collaborators, and have each person enter a GitHub token in **Settings**.
+     - Repository owned by someone else's account: use a [classic token](https://github.com/settings/tokens/new?scopes=repo&description=Repo%20Brain) with the `repo` scope (fine-grained tokens can't reach another user's repositories).
+     - Your own repository, or one in an organization: use a [fine-grained token](https://github.com/settings/personal-access-tokens/new) with *Contents: Read and write* on that repository only — safer. For a larger team, move the repository into an organization.
    - **Shared folder**: everyone picks the same folder synced with Google Drive / OneDrive / a NAS.
 6. **Ask away** in Claude Desktop, for example
    - “Which modules inherit `purchase.request`?”
