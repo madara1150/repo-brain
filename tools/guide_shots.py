@@ -112,10 +112,10 @@ def main():
 
         # 4. team knowledge: private GitHub repository
         win.tabs.setCurrentIndex(1)
+        win.kn_group.blockSignals(True)  # show the GitHub choice without saving it
         for b in win.kn_group.buttons():
-            b.blockSignals(True)
             b.setChecked(b.property("mode") == "github")
-            b.blockSignals(False)
+        win.kn_group.blockSignals(False)
         win.kn_repo.setText("your-team/team-knowledge")
         win.gh_box.setVisible(True)
         win.folder_box.setVisible(False)
@@ -166,6 +166,19 @@ def main():
         pump(app)
         save(box, "10-connected", lang)
         box.close()
+
+        # 7b. a new app version is available (banner as shown after the automatic check)
+        from app import updater
+        from app.config import VERSION
+        nxt = VERSION.rsplit(".", 1)[0] + "." + str(int(VERSION.rsplit(".", 1)[1]) + 1)
+        win._release = updater.Release(nxt, "", updater.RELEASES_PAGE, "x", "x", "x")
+        win._release_dismissed = False
+        win.tabs.setCurrentIndex(0)
+        win._show_update_banner()
+        win.up_go.setText(tr("up_now"))  # what an installed app shows
+        pump(app)
+        save(win, "12-update-banner", lang)
+        win._dismiss_update()
 
         # 8. teach: LINE case loaded and copied
         win.tabs.setCurrentIndex(3)

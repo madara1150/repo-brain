@@ -556,3 +556,46 @@ def test_mcp_question_tools(tmp_path):
     assert "1 answer" in text
     text, err = _call(s, "ask_question", question="ใครดูแลเมนูทดสอบ", area="ทั้งระบบ")
     assert not err and "questions/" in text
+
+
+# ---------------------------------------------------------------- app updates
+def test_updater_versions_and_release_parsing():
+    from app import updater
+    assert updater.is_newer("v1.0.10", "1.0.9") and not updater.is_newer("1.0.5", "1.0.5")
+    assert updater.parse_version("v2.1") == (2, 1, 0)
+    data = {"tag_name": "v1.2.0", "body": "notes", "html_url": "https://x/rel", "assets": [
+        {"name": "RepoBrain-macOS.dmg", "browser_download_url": "https://x/mac"},
+        {"name": "RepoBrain-Windows-Setup.exe", "browser_download_url": "https://x/win"},
+        {"name": "SHA256SUMS.txt", "browser_download_url": "https://x/sums"}]}
+    rel = updater.release_from_json(data)
+    assert rel.version == "1.2.0" and rel.sums_url == "https://x/sums"
+    assert rel.asset_name == updater.platform_asset() or not updater.platform_asset()
+    sums = "a" * 64 + "  RepoBrain-macOS.dmg\n" + "b" * 64 + " *RepoBrain-Windows-Setup.exe\n"
+    assert updater.expected_sha256(sums, "RepoBrain-Windows-Setup.exe") == "b" * 64
+    assert updater.expected_sha256(sums, "other") == ""
+    assert not updater.can_self_update()  # running from source never replaces itself
+
+
+def test_updater_download_verifies_checksum(monkeypatch):
+    import hashlib
+    from app import updater
+    payload = b"installer-bytes" * 1000
+    good = hashlib.sha256(payload).hexdigest()
+
+    class R(io.BytesIO):
+        headers = {"Content-Length": str(len(payload))}
+        def __enter__(self): return self
+        def __exit__(self, *a): self.close()
+
+    def fake_open(sums):
+        def _open(url, accept=""):
+            return R((sums + "  X.dmg\n").encode() if url.endswith("sums") else payload)
+        return _open
+    rel = updater.Release("9.9.9", "", "", "X.dmg", "https://x/asset", "https://x/sums")
+    monkeypatch.setattr(updater, "_open", fake_open(good))
+    seen = []
+    path = updater.download(rel, lambda d, t: seen.append((d, t)))
+    assert open(path, "rb").read() == payload and seen[-1] == (len(payload), len(payload))
+    monkeypatch.setattr(updater, "_open", fake_open("0" * 64))
+    with pytest.raises(updater.UpdateError):
+        updater.download(rel)

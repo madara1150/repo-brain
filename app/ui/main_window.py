@@ -20,7 +20,7 @@ from ..config import (APP_NAME, config_path, TEAM_EXT, VERSION, Source, TeamFile
 from ..github import GitHub, parse_repo
 from ..i18n import language, set_language, tr
 from ..store import Store
-from .. import line_chat, questions, teach
+from .. import line_chat, questions, teach, updater
 from ..sync import Cancelled, Syncer, check_updates, knowledge_repo
 from . import styles
 
@@ -233,6 +233,11 @@ class MainWindow(QMainWindow):
         self._build()
         if self.cfg.sources:
             QTimer.singleShot(1200, lambda: self.check_updates(quiet=True))
+        self._release = None
+        self._release_dismissed = False
+        self.upd_worker = None
+        if getattr(sys, "frozen", False) or os.environ.get("REPO_BRAIN_UPDATE_CHECK"):
+            QTimer.singleShot(3000, lambda: self.check_app_update(manual=False))
 
     # ---- layout
     def _build(self):
@@ -260,6 +265,7 @@ class MainWindow(QMainWindow):
         self.lang.currentIndexChanged.connect(self._change_language)
         head.addWidget(self.lang)
         root.addLayout(head)
+        root.addWidget(self._update_banner())
 
         self.tabs = QTabWidget()
         self.tabs.addTab(self._sources_tab(), tr("tab_sources"))
@@ -304,6 +310,119 @@ class MainWindow(QMainWindow):
         lay.addWidget(self.check_btn)
         lay.addWidget(self.update_btn)
         return bar
+
+    def _update_banner(self):
+        bar = QFrame()
+        bar.setObjectName("updateBanner")
+        lay = QHBoxLayout(bar)
+        lay.setContentsMargins(16, 10, 12, 10)
+        self.up_label = label("", wrap=True)
+        self.up_label.setTextFormat(Qt.RichText)
+        lay.addWidget(self.up_label, 1)
+        self.up_notes = QPushButton(tr("up_notes"))
+        self.up_notes.clicked.connect(self._show_release_notes)
+        self.up_go = QPushButton(tr("up_now"))
+        self.up_go.setObjectName("primary")
+        self.up_go.clicked.connect(self._start_app_update)
+        self.up_later = QPushButton(tr("up_later"))
+        self.up_later.clicked.connect(self._dismiss_update)
+        for b in (self.up_notes, self.up_go, self.up_later):
+            lay.addWidget(b)
+        bar.setVisible(bool(getattr(self, "_release", None)) and not getattr(self, "_release_dismissed", False))
+        self.up_banner = bar
+        if bar.isVisible():
+            self._show_update_banner()
+        return bar
+
+    def check_app_update(self, manual=False):
+        if self.upd_worker and self.upd_worker.isRunning():
+            return
+        self.upd_worker = Worker(lambda p, c: updater.fetch_latest(), self)
+
+        def done(rel):
+            if rel.version and updater.is_newer(rel.version):
+                self._release = rel
+                self._release_dismissed = False
+                self._show_update_banner()
+            elif manual:
+                info(self, APP_NAME, tr("up_latest", ver=VERSION))
+
+        def fail(err):
+            if manual:
+                warn(self, tr("error"), tr("up_failed", err=err))
+        self.upd_worker.done.connect(done)
+        self.upd_worker.failed.connect(fail)
+        self.upd_worker.start()
+
+    def _show_update_banner(self):
+        rel = self._release
+        if not rel:
+            return
+        self.up_label.setText(tr("up_available", new=rel.version, cur=VERSION))
+        self.up_go.setText(tr("up_now") if updater.can_self_update() and rel.asset_url else tr("up_download"))
+        self.up_banner.show()
+
+    def _dismiss_update(self):
+        self._release_dismissed = True
+        self.up_banner.hide()
+
+    def _show_release_notes(self):
+        rel = self._release
+        if not rel:
+            return
+        dlg = QDialog(self)
+        dlg.setWindowTitle(tr("up_notes_title", ver=rel.version))
+        dlg.resize(620, 480)
+        lay = QVBoxLayout(dlg)
+        view = QTextBrowser()
+        view.setOpenExternalLinks(True)
+        view.setMarkdown(rel.notes or tr("up_no_notes"))
+        lay.addWidget(view, 1)
+        buttons = QDialogButtonBox(QDialogButtonBox.Close)
+        go = buttons.addButton(self.up_go.text(), QDialogButtonBox.AcceptRole)
+        go.setObjectName("primary")
+        localize(buttons)
+        buttons.accepted.connect(dlg.accept)
+        buttons.rejected.connect(dlg.reject)
+        lay.addWidget(buttons)
+        if dlg.exec() == QDialog.Accepted:
+            self._start_app_update()
+
+    def _start_app_update(self):
+        rel = self._release
+        if not rel:
+            return
+        if not updater.can_self_update() or not rel.asset_url:
+            QDesktopServices.openUrl(QUrl(rel.page or updater.RELEASES_PAGE))
+            return
+        if ask(self, APP_NAME, tr("up_confirm", ver=rel.version)) != QMessageBox.Yes:
+            return
+        if self.worker and self.worker.isRunning():
+            warn(self, APP_NAME, tr("up_busy"))
+            return
+        self.up_go.setEnabled(False)
+        self.up_later.setEnabled(False)
+        self.upd_worker = Worker(lambda progress, cancel: updater.download(
+            rel, lambda done, total: progress(tr("up_downloading", pct=int(done * 100 / total) if total else 0),
+                                              done / total if total else None)), self)
+        self.upd_worker.progress.connect(lambda msg, frac: self.up_label.setText(msg))
+
+        def done(path):
+            try:
+                updater.launch_installer(path)
+            except Exception as e:  # noqa: BLE001 - shown to the user
+                fail(str(e))
+                return
+            QApplication.instance().quit()
+
+        def fail(err):
+            self.up_go.setEnabled(True)
+            self.up_later.setEnabled(True)
+            self._show_update_banner()
+            warn(self, tr("error"), tr("up_failed", err=err))
+        self.upd_worker.done.connect(done)
+        self.upd_worker.failed.connect(fail)
+        self.upd_worker.start()
 
     def _sources_tab(self):
         page = QWidget()
@@ -872,7 +991,14 @@ class MainWindow(QMainWindow):
         box = card(layout=QVBoxLayout())
         box.layout().addLayout(form)
         lay.addWidget(box)
-        lay.addWidget(card(label(tr("st_privacy"), "hint"), label(f"{APP_NAME} {VERSION} · MIT License", "hint")))
+        about = card(label(tr("st_privacy"), "hint"))
+        ar = QHBoxLayout()
+        ar.addWidget(label(f"{APP_NAME} {VERSION} · MIT License", "hint"), 1)
+        upd = QPushButton(tr("up_check"))
+        upd.clicked.connect(lambda: self.check_app_update(manual=True))
+        ar.addWidget(upd)
+        about.layout().addLayout(ar)
+        lay.addWidget(about)
         lay.addStretch(1)
         return outer
 

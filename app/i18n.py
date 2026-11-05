@@ -141,6 +141,23 @@ T = {
                    "ส่วนที่ Claude อ่านจะส่งผ่าน Claude Desktop ของคุณเอง",
                    "Everything is stored on this computer. The app only contacts GitHub (update / check / add note) and PyPI "
                    "(dependency lookup). What Claude reads goes through your own Claude Desktop."),
+    # app update
+    "up_available": ("<b>มี Repo Brain เวอร์ชันใหม่ {new}</b> (ตอนนี้ใช้ {cur})", "<b>Repo Brain {new} is available</b> (you have {cur})"),
+    "up_notes": ("ดูว่ามีอะไรใหม่", "What's new"),
+    "up_now": ("อัปเดตเลย", "Update now"),
+    "up_download": ("ไปหน้าดาวน์โหลด", "Open download page"),
+    "up_later": ("ภายหลัง", "Later"),
+    "up_check": ("ตรวจหาเวอร์ชันใหม่", "Check for app updates"),
+    "up_latest": ("ใช้เวอร์ชันล่าสุดอยู่แล้ว ({ver})", "You have the latest version ({ver})"),
+    "up_failed": ("อัปเดตไม่สำเร็จ: {err}", "Update failed: {err}"),
+    "up_notes_title": ("มีอะไรใหม่ใน {ver}", "What's new in {ver}"),
+    "up_no_notes": ("ไม่มีรายละเอียด", "No release notes"),
+    "up_confirm": ("อัปเดตเป็นเวอร์ชัน {ver}?\n\nแอปจะดาวน์โหลด ตรวจสอบไฟล์ แล้วปิดและเปิดใหม่เอง ข้อมูลและการตั้งค่าอยู่ครบ\n"
+                   "หลังอัปเดต ให้ปิด Claude Desktop (Quit) แล้วเปิดใหม่หนึ่งครั้ง",
+                   "Update to {ver}?\n\nThe app downloads and verifies the update, then closes and reopens. "
+                   "Your data and settings are kept.\nAfterwards, quit and reopen Claude Desktop once."),
+    "up_busy": ("รอให้งานที่กำลังทำเสร็จก่อน แล้วค่อยอัปเดต", "Wait for the current task to finish, then update."),
+    "up_downloading": ("กำลังดาวน์โหลดเวอร์ชันใหม่… {pct}%", "Downloading the new version… {pct}%"),
     # team questions
     "q_hint": ("คำถามที่ยังไม่มีใครยืนยัน ใครรู้ก็ตอบได้เลย คำตอบจะถูกบันทึกพร้อมชื่อคุณและแชร์ให้ทั้งทีม "
                "(คนอื่นเห็นหลังกด “อัปเดตข้อมูล”) Claude จะใช้คำตอบเหล่านี้ตอบผู้ใช้",

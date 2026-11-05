@@ -40,6 +40,7 @@ QLabel#subtitle {{ color: {MUTED}; font-size: 13px; }}
 QLabel#hint, QLabel.hint {{ color: {MUTED}; }}
 QLabel#sectionTitle {{ font-size: 16px; font-weight: 700; }}
 QFrame#card {{ background: {CARD}; border: 1px solid {BORDER}; border-radius: 12px; }}
+QFrame#updateBanner {{ background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 12px; }}
 QFrame#updateBar {{ background: {CARD}; border: 1px solid {BORDER}; border-radius: 12px; }}
 QTabWidget::pane {{ border: none; }}
 QTabBar::tab {{ background: transparent; padding: 9px 16px; margin-right: 4px; border-radius: 8px;

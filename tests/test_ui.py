@@ -121,3 +121,26 @@ def test_questions_tab_answers(win, tmp_path, monkeypatch):
     QApplication.processEvents()
     assert "### Boat ·" in (folder / "questions" / "q1.md").read_text(encoding="utf-8")
     assert win.tabs.tabText(win.questions_index) == "คำถามทีม"
+
+
+def test_update_banner(win, monkeypatch):
+    from app import updater
+    import app.ui.main_window as mw
+    assert win.up_banner.isHidden()
+    rel = updater.Release("99.0.0", "**ใหม่**", "https://example.invalid/rel")
+    monkeypatch.setattr(updater, "fetch_latest", lambda: rel)
+    win.check_app_update(manual=False)
+    win.upd_worker.wait(5000)
+    from PySide6.QtWidgets import QApplication
+    QApplication.processEvents()
+    assert not win.up_banner.isHidden() and "99.0.0" in win.up_label.text()
+    assert win.up_go.text() == "ไปหน้าดาวน์โหลด"  # from source / no asset: open the page instead
+    win._dismiss_update()
+    assert win.up_banner.isHidden()
+    infos = []
+    monkeypatch.setattr(updater, "fetch_latest", lambda: updater.Release("0.0.1", "", ""))
+    monkeypatch.setattr(mw, "info", lambda *a, **k: infos.append(a))
+    win.check_app_update(manual=True)
+    win.upd_worker.wait(5000)
+    QApplication.processEvents()
+    assert infos and win.up_banner.isHidden()

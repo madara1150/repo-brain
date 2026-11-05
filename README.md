@@ -96,6 +96,17 @@ You need [Claude Desktop](https://claude.ai/download) installed and signed in.
 
 ---
 
+### Updating the app
+
+When a new version is out, a banner appears at the top (or press **Check for app updates** in **Settings**). **What's new** shows the release notes; **Update now** downloads and verifies the update, then the app closes and reopens by itself with your data and settings intact. Afterwards quit and reopen Claude Desktop once.
+
+<img src="docs/screenshots/guide/12-update-banner-en.png" width="760" alt="New version banner">
+
+- macOS: the app must be in Applications (not run from the .dmg).
+- Windows portable: the button opens the download page instead; extract over the old folder.
+
+---
+
 ## ⚡ Quick start: teammates who received a settings file
 
 If your admin sent you a `.repobrain` file, five steps are enough:

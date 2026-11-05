@@ -1,7 +1,7 @@
 ; Inno Setup 6.5+ script -> dist\RepoBrain-Windows-Setup.exe
 ; Build: ISCC /DAppVersion=1.2.3 build_tools\installer.iss
 #ifndef AppVersion
-  #define AppVersion "1.0.5"
+  #define AppVersion "1.0.6"
 #endif
 #define AppName "Repo Brain"
 #define AppExe "RepoBrain.exe"
@@ -58,3 +58,5 @@ Name: "{autodesktop}\Repo Brain"; Filename: "{app}\{#AppExe}"; Tasks: desktopico
 
 [Run]
 Filename: "{app}\{#AppExe}"; Description: "{cm:LaunchProgram,{#AppName}}"; Flags: nowait postinstall skipifsilent
+; started by the in-app updater (/SILENT): reopen the app when the update is done
+Filename: "{app}\{#AppExe}"; Flags: nowait skipifnotsilent
