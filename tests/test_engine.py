@@ -326,3 +326,33 @@ def test_config_roundtrip():
     assert cfg.sources[0].branch == "16.0" and cfg.knowledge.folder == "/x" and cfg.language == "en"
     if os.name != "nt":
         assert oct(os.stat(config_path()).st_mode & 0o777) == "0o600"
+
+
+def test_team_settings_roundtrip(tmp_path):
+    from app.config import (Config, Knowledge, Source, TeamFileError, apply_team, export_team, read_team)
+    mine = Config(sources=[Source("me/erp", "16.0"), Source("OCA/web", "16.0")],
+                  knowledge=Knowledge(mode="github", repo="me/notes", subdir="knowledge"),
+                  github_token="github_pat_x", author="Owner", odoo_version="16.0", language="en")
+    path = tmp_path / "team.repobrain"
+    export_team(mine, str(path), include_token=True)
+    data = read_team(str(path))
+    assert data["github_token"] == "github_pat_x" and "author" not in data and "language" not in data
+    if os.name != "nt":
+        assert oct(os.stat(path).st_mode & 0o777) == "0o600"
+
+    friend = Config(author="Friend", language="th", github_token="own")
+    got = apply_team(friend, data)
+    assert [s.repo for s in got.sources] == ["me/erp", "OCA/web"] and got.knowledge.repo == "me/notes"
+    assert got.github_token == "github_pat_x" and got.author == "Friend" and got.language == "th"
+
+    export_team(mine, str(path), include_token=False)
+    data = read_team(str(path))
+    assert "github_token" not in data and apply_team(friend, data).github_token == "own"
+
+    folder = Config(knowledge=Knowledge(mode="folder", folder="/Users/me/Drive/notes"))
+    export_team(folder, str(path))
+    assert read_team(str(path))["knowledge"]["folder"] == ""  # local paths don't travel
+
+    (tmp_path / "x.json").write_text('{"sources": []}')
+    with pytest.raises(TeamFileError):
+        read_team(str(tmp_path / "x.json"))

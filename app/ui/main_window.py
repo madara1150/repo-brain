@@ -15,7 +15,8 @@ from PySide6.QtWidgets import (QAbstractItemView, QApplication, QButtonGroup, QC
                                QTableWidgetItem, QTabWidget, QTextBrowser, QVBoxLayout, QWidget)
 
 from .. import claude_connect
-from ..config import APP_NAME, VERSION, Source, data_dir, index_path, load_config, save_config
+from ..config import (APP_NAME, TEAM_EXT, VERSION, Source, TeamFileError, apply_team, data_dir, export_team,
+                      index_path, load_config, read_team, save_config)
 from ..github import GitHub, parse_repo
 from ..i18n import language, set_language, tr
 from ..store import Store
@@ -410,9 +411,29 @@ class MainWindow(QMainWindow):
         return page
 
     def _settings_tab(self):
+        outer = QWidget()
+        outer_lay = QVBoxLayout(outer)
+        outer_lay.setContentsMargins(0, 10, 0, 0)
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.NoFrame)
         page = QWidget()
+        scroll.setWidget(page)
+        outer_lay.addWidget(scroll)
         lay = QVBoxLayout(page)
-        lay.setContentsMargins(0, 10, 0, 0)
+        lay.setContentsMargins(0, 0, 0, 0)
+        team = card(label(tr("team_title"), "sectionTitle"), label(tr("team_hint"), "hint"))
+        row = QHBoxLayout()
+        imp = QPushButton(tr("team_import"))
+        imp.setObjectName("primary")
+        imp.clicked.connect(self._import_team)
+        exp = QPushButton(tr("team_export"))
+        exp.clicked.connect(self._export_team)
+        row.addWidget(imp)
+        row.addWidget(exp)
+        row.addStretch(1)
+        team.layout().addLayout(row)
+        lay.addWidget(team)
         form = QFormLayout()
         form.setVerticalSpacing(12)
         form.setHorizontalSpacing(18)
@@ -430,7 +451,7 @@ class MainWindow(QMainWindow):
         tr_row.addWidget(show)
         tr_row.addWidget(test)
         form.addRow(tr("st_token"), tr_row)
-        form.addRow("", label(tr("st_token_hint"), "hint", rich=True))
+        form.addRow("", label(tr("st_token_hint"), "hint", wrap=False, rich=True))  # short lines; wrapping clips in forms
 
         self.author = QLineEdit(self.cfg.author)
         self.author.editingFinished.connect(self._settings_changed)
@@ -458,7 +479,7 @@ class MainWindow(QMainWindow):
         lay.addWidget(box)
         lay.addWidget(card(label(tr("st_privacy"), "hint"), label(f"{APP_NAME} {VERSION} · MIT License", "hint")))
         lay.addStretch(1)
-        return page
+        return outer
 
     # ---- refresh views
     def refresh(self):
@@ -747,6 +768,63 @@ class MainWindow(QMainWindow):
         self.cfg.author = self.author.text().strip()
         self.cfg.odoo_version = self.odoo.currentText().strip() or "16.0"
         save_config(self.cfg)
+
+    def _export_team(self):
+        self._settings_changed()
+        self._knowledge_changed()
+        include = False
+        if self.cfg.github_token:
+            ans = QMessageBox.question(self, tr("team_export"), tr("team_ask_token"),
+                                       QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel, QMessageBox.Yes)
+            if ans == QMessageBox.Cancel:
+                return
+            include = ans == QMessageBox.Yes
+        path, _ = QFileDialog.getSaveFileName(self, tr("team_export"),
+                                              os.path.join(os.path.expanduser("~"), "team" + TEAM_EXT),
+                                              f"Repo Brain (*{TEAM_EXT})")
+        if not path:
+            return
+        if not path.endswith(TEAM_EXT):
+            path += TEAM_EXT
+        try:
+            export_team(self.cfg, path, include)
+        except OSError as e:
+            QMessageBox.warning(self, tr("error"), str(e))
+            return
+        QMessageBox.information(self, tr("team_export"),
+                                tr("team_exported_token" if include else "team_exported", path=path))
+
+    def _import_team(self, path: str = ""):
+        if not path:
+            path, _ = QFileDialog.getOpenFileName(self, tr("team_import"), os.path.expanduser("~"),
+                                                  f"Repo Brain (*{TEAM_EXT} *.json)")
+        if not path:
+            return
+        try:
+            data = read_team(path)
+        except TeamFileError as e:
+            QMessageBox.warning(self, tr("error"), tr("team_bad", err=str(e)))
+            return
+        new = apply_team(self.cfg, data)
+        repos = "\n".join(f"  • {s.repo} ({s.branch or tr('default_branch')})" for s in new.sources) or "  —"
+        k = new.knowledge
+        kn = {"github": f"GitHub: {k.repo}", "folder": tr("kn_folder"), "none": tr("kn_none")}.get(k.mode, k.mode)
+        summary = tr("team_summary", repos=repos, knowledge=kn, odoo=new.odoo_version,
+                     token=tr("team_has_token") if data.get("github_token") else tr("team_no_token"))
+        if QMessageBox.question(self, tr("team_import"), summary) != QMessageBox.Yes:
+            return
+        self.cfg = new
+        save_config(self.cfg)
+        self.checks = {}
+        self._build()
+        self.tabs.setCurrentIndex(3 if not self.cfg.author else 0)
+        msg = tr("team_imported")
+        if not self.cfg.author:
+            msg += "\n\n" + tr("team_need_name")
+            self.author.setFocus()
+        if k.mode == "folder" and not k.folder:
+            msg += "\n\n" + tr("team_need_folder")
+        QMessageBox.information(self, tr("team_import"), msg)
 
     def _test_token(self):
         self._settings_changed()

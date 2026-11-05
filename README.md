@@ -43,6 +43,7 @@
 | 🔔 **รู้ว่ามีของใหม่** | ปุ่ม **ตรวจหาของใหม่** บอกว่า repo ไหนมี commit ใหม่ โดยไม่โหลดโค้ด Claude เองก็ถามได้ |
 | 🧩 **เข้าใจ Odoo** | รู้ว่า model ถูกสร้างและถูก `_inherit` ที่โมดูลไหน มี field อะไร โมดูลพึ่งโมดูลไหน ค้นป้ายภาษาไทยจาก `th.po` และ view ได้ |
 | 🔗 **หา repo ของ OCA ที่ขาดให้** | อ่าน `depends` แล้วบอกว่าโมดูลที่ขาดอยู่ใน repo ไหนของ OCA ตรงตามเวอร์ชัน Odoo แล้วเพิ่มได้ในคลิกเดียว |
+| 📦 **ตั้งค่าทั้งทีมด้วยไฟล์เดียว** | คนเดียวตั้งค่าแล้วส่งออก คนอื่นนำเข้าไฟล์ `.repobrain` ก็ได้ repo, ข้อมูลทีม และ token ครบ |
 | 👥 **ข้อมูลทีมที่แชร์กัน** | ทุกคนเพิ่มบันทึกได้ เช่น กฎธุรกิจ ขั้นตอนงาน ข้อตกลงของทีม เก็บใน GitHub repo แบบ private หรือโฟลเดอร์แชร์ แล้วทุกคนได้ข้อมูลเมื่อกดอัปเดต |
 | 💬 **บอก Claude ให้จำ** | พิมพ์ใน Claude ว่า “จำไว้ให้ทีมว่า …” แล้วบันทึกจะถูกแชร์ให้ทั้งทีม |
 | 🔑 **ใช้ Claude ของแต่ละคน** | ทำงานเป็น MCP server ของ Claude Desktop จึงใช้บัญชีและโควตาของแต่ละคนเอง ไม่ต้องมี API key กลาง |
@@ -78,6 +79,8 @@ Claude ใช้เครื่องมือเหล่านี้ได้:
 
 ### 🚀 วิธีใช้
 
+> **คนในทีมที่ได้ไฟล์ตั้งค่าทีม (`.repobrain`) มาแล้ว**: ติดตั้งแอป → **ตั้งค่า** → **นำเข้าการตั้งค่าทีม…** → กรอก **ชื่อผู้บันทึก** → กด **อัปเดตข้อมูล** → ไปทำข้อ 4 ได้เลย
+
 1. **เพิ่ม repo**: แท็บ **โค้ดจาก GitHub** กด **เพิ่ม repo** ใส่ `owner/name` หรือ URL ของ GitHub
 2. **กด “อัปเดตข้อมูล”**: ครั้งแรกจะโหลดทั้ง repo (repo ขนาดหลายพันไฟล์ใช้ไม่กี่วินาที) ครั้งต่อไปจะดึงเฉพาะไฟล์ที่เปลี่ยน
 3. **ถ้าเป็น Odoo**: ไปที่ **ตั้งค่า** แล้วเลือกเวอร์ชัน Odoo จากนั้นกด **หา repo ที่โมดูลต้องใช้** เลือก repo ของ OCA ที่ต้องการ แล้วกดอัปเดตอีกครั้ง
@@ -90,7 +93,9 @@ Claude ใช้เครื่องมือเหล่านี้ได้:
      - repo อยู่ใต้บัญชีของคนอื่น: ใช้ [classic token](https://github.com/settings/tokens/new?scopes=repo&description=Repo%20Brain) สิทธิ์ `repo` (fine-grained token ใช้กับ repo ของบัญชีคนอื่นไม่ได้)
      - repo ของคุณเอง หรือ repo ใน organization: ใช้ [fine-grained token](https://github.com/settings/personal-access-tokens/new) สิทธิ์ *Contents: Read and write* เฉพาะ repo นี้ จะปลอดภัยกว่า ถ้าทีมใหญ่ แนะนำให้ย้าย repo ไปไว้ใน organization
    - **โฟลเดอร์แชร์**: ทุกคนเลือกโฟลเดอร์เดียวกันที่ sync ด้วย Google Drive / OneDrive / NAS
-6. **ถามได้เลย** ใน Claude Desktop เช่น
+6. **แจกการตั้งค่าให้ทีม** (คนตั้งค่าทำครั้งเดียว): **ตั้งค่า** → **ส่งออกการตั้งค่าทีม…** จะได้ไฟล์ `.repobrain` ที่มีรายการ repo, ที่เก็บข้อมูลทีม, เวอร์ชัน Odoo และ token (เลือกได้ว่าจะใส่ token ไหม) ส่งไฟล์ให้ทีม**ทางแชทส่วนตัวเท่านั้น** ชื่อผู้บันทึกและภาษาของแต่ละคนจะไม่ถูกเปลี่ยน
+   - ถ้าใส่ token ในไฟล์ ให้ใช้ [fine-grained token](https://github.com/settings/personal-access-tokens/new) ของเจ้าของ repo ที่จำกัดเฉพาะ repo ข้อมูลทีม สิทธิ์ *Contents: Read and write* และตั้งวันหมดอายุ ทุกบันทึกจะ commit ในชื่อเจ้าของ token แต่ในบันทึกยังมีชื่อผู้บันทึกจริง
+7. **ถามได้เลย** ใน Claude Desktop เช่น
    - “model `purchase.request` ถูก inherit ที่โมดูลไหนบ้าง”
    - “field ‘ผู้ขอซื้อ’ อยู่ใน model ไหน”
    - “ใบขอซื้อของเราต้องอนุมัติกี่ขั้น (ดูข้อมูลทีมด้วย)”
@@ -165,6 +170,7 @@ push tag `v1.0.0` แล้ว GitHub Actions จะ build ทั้งสอง
 | 🔔 **Knows when there's news** | **Check for changes** tells you which repositories have new commits without downloading code. Claude can ask too. |
 | 🧩 **Understands Odoo** | Where each model is defined and `_inherit`ed, its fields, module dependencies; Thai labels are searchable via `th.po` and views. |
 | 🔗 **Finds missing OCA repos** | Reads `depends` and tells you which OCA repository ships each missing module for your Odoo version, then adds them in one click. |
+| 📦 **One file sets up the team** | One person exports the setup; everyone else imports the `.repobrain` file and gets the repositories, team knowledge and token. |
 | 👥 **Shared team knowledge** | Everyone can add notes — business rules, procedures, conventions — stored in a private GitHub repository or a shared folder; everyone gets them on Update. |
 | 💬 **Ask Claude to remember** | Say “remember for the team that …” in Claude and the note is shared with the whole team. |
 | 🔑 **Each person's own Claude** | Runs as a Claude Desktop MCP server, so it uses each person's own account and quota — no shared API key. |
@@ -200,6 +206,8 @@ You also need [Claude Desktop](https://claude.ai/download).
 
 ### 🚀 How to use
 
+> **Teammates who received a team settings file (`.repobrain`)**: install the app → **Settings** → **Import team settings…** → fill in **Your name** → press **Update** → continue at step 4.
+
 1. **Add repositories**: on **GitHub code**, press **Add repository** and enter `owner/name` or a GitHub URL.
 2. **Press “Update”**: the first time downloads the whole repository (a few seconds for thousands of files); later updates fetch only changed files.
 3. **For Odoo**: pick your Odoo version in **Settings**, press **Find dependency repos**, tick the OCA repositories you want and update again.
@@ -212,7 +220,9 @@ You also need [Claude Desktop](https://claude.ai/download).
      - Repository owned by someone else's account: use a [classic token](https://github.com/settings/tokens/new?scopes=repo&description=Repo%20Brain) with the `repo` scope (fine-grained tokens can't reach another user's repositories).
      - Your own repository, or one in an organization: use a [fine-grained token](https://github.com/settings/personal-access-tokens/new) with *Contents: Read and write* on that repository only — safer. For a larger team, move the repository into an organization.
    - **Shared folder**: everyone picks the same folder synced with Google Drive / OneDrive / a NAS.
-6. **Ask away** in Claude Desktop, for example
+6. **Share the setup with the team** (done once by whoever set it up): **Settings** → **Export team settings…** saves a `.repobrain` file with the repositories, team knowledge location, Odoo version and, if you choose, the token. Send it to the team **privately only**. Each person's name and language are left unchanged.
+   - If the file includes a token, use the repository owner's [fine-grained token](https://github.com/settings/personal-access-tokens/new) limited to the knowledge repository with *Contents: Read and write* and an expiry date. Notes are committed under the token owner's account, but each note still records who wrote it.
+7. **Ask away** in Claude Desktop, for example
    - “Which modules inherit `purchase.request`?”
    - “Which model has the ‘Requested by’ field?”
    - “How many approval steps does our purchase request need? (check team notes too)”

@@ -9,7 +9,7 @@ from dataclasses import asdict, dataclass, field
 APP_NAME = "Repo Brain"
 APP_ID = "RepoBrain"
 MCP_NAME = "repo-brain"
-VERSION = "1.0.1"
+VERSION = "1.0.2"
 
 
 def data_dir() -> str:
@@ -101,3 +101,55 @@ def save_config(cfg: Config) -> None:
     except OSError:
         pass
     os.replace(tmp, path)
+
+
+# ---------------------------------------------------------------- team settings file
+TEAM_FORMAT = "repo-brain-team"
+TEAM_EXT = ".repobrain"
+
+
+class TeamFileError(ValueError):
+    pass
+
+
+def export_team(cfg: Config, path: str, include_token: bool = True) -> None:
+    """Write the settings the whole team shares (repositories, knowledge, Odoo version, optionally the token).
+
+    Personal settings (your name, language) are left out.
+    """
+    data = {"format": TEAM_FORMAT, "version": 1, "app_version": VERSION,
+            "sources": [asdict(s) for s in cfg.sources], "knowledge": asdict(cfg.knowledge),
+            "odoo_version": cfg.odoo_version}
+    if include_token and cfg.github_token:
+        data["github_token"] = cfg.github_token
+    if data["knowledge"].get("mode") == "folder":
+        data["knowledge"]["folder"] = ""  # a local path means nothing on another computer
+    with open(path, "w", encoding="utf-8") as fh:
+        json.dump(data, fh, ensure_ascii=False, indent=2)
+    try:
+        os.chmod(path, 0o600)
+    except OSError:
+        pass
+
+
+def read_team(path: str) -> dict:
+    try:
+        with open(path, encoding="utf-8") as fh:
+            data = json.load(fh)
+    except (OSError, ValueError) as e:
+        raise TeamFileError(f"cannot read the file: {e}") from None
+    if not isinstance(data, dict) or data.get("format") != TEAM_FORMAT:
+        raise TeamFileError("this is not a Repo Brain team settings file")
+    return data
+
+
+def apply_team(cfg: Config, data: dict) -> Config:
+    """Return a copy of cfg with the team settings applied; keeps your name and language,
+    and keeps your own token when the file has none. A folder-mode knowledge path is kept if the file has none."""
+    team = Config.from_json({**data, "author": cfg.author, "language": cfg.language,
+                             "github_token": data.get("github_token") or cfg.github_token})
+    if team.knowledge.mode == "folder" and not team.knowledge.folder and cfg.knowledge.mode == "folder":
+        team.knowledge.folder = cfg.knowledge.folder
+    if not data.get("odoo_version"):
+        team.odoo_version = cfg.odoo_version
+    return team

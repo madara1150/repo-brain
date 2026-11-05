@@ -49,3 +49,17 @@ def test_connect_claude(win, tmp_path):
     win._connect_claude()
     assert claude_connect.status() == "connected"
     assert "เชื่อมแล้ว" in win.cl_state.text()
+
+
+def test_import_team_file(win, tmp_path, monkeypatch):
+    from PySide6.QtWidgets import QMessageBox
+    from app.config import Config, Knowledge, Source, export_team, load_config
+    path = tmp_path / "team.repobrain"
+    export_team(Config(sources=[Source("me/erp", "16.0")], knowledge=Knowledge(mode="github", repo="me/notes"),
+                       github_token="tok"), str(path))
+    monkeypatch.setattr(QMessageBox, "question", staticmethod(lambda *a, **k: QMessageBox.Yes))
+    monkeypatch.setattr(QMessageBox, "information", staticmethod(lambda *a, **k: None))
+    win._import_team(str(path))
+    cfg = load_config()
+    assert cfg.sources[0].repo == "me/erp" and cfg.knowledge.repo == "me/notes" and cfg.github_token == "tok"
+    assert win.table.rowCount() == 1 and win.tabs.currentIndex() == 3  # asks for the name next

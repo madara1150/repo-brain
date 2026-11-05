@@ -117,14 +117,14 @@ T = {
                     "<li>Remember for the team: year-end closing must be done before 30 Sep.</li></ul>"),
     # settings
     "st_token": ("GitHub token", "GitHub token"),
-    "st_token_hint": ("ไม่บังคับสำหรับ repo public (แต่ช่วยไม่ให้ติด rate limit) จำเป็นสำหรับ repo ข้อมูลทีมแบบ private<br>"
+    "st_token_hint": ("ไม่บังคับสำหรับ repo public (ช่วยไม่ให้ติด rate limit) แต่จำเป็นสำหรับ repo ข้อมูลทีมแบบ private<br>"
                       "• repo ของบัญชีคนอื่น: <a href='https://github.com/settings/tokens/new?scopes=repo&description=Repo%20Brain'>สร้าง classic token</a> สิทธิ์ <b>repo</b><br>"
                       "• repo ของคุณเองหรือของ organization: <a href='https://github.com/settings/personal-access-tokens/new'>fine-grained token</a> "
-                      "สิทธิ์ Contents: Read and write เฉพาะ repo นั้น (ปลอดภัยกว่า)",
-                      "Optional for public repositories (avoids rate limits); required for a private knowledge repository.<br>"
+                      "สิทธิ์ Contents: Read and write เฉพาะ repo นั้น<br>• ได้ไฟล์ตั้งค่าทีมมา: กด “นำเข้าการตั้งค่าทีม” ด้านบน ไม่ต้องสร้างเอง",
+                      "Optional for public repositories (avoids rate limits), required for a private knowledge repository.<br>"
                       "• Repository owned by another person: <a href='https://github.com/settings/tokens/new?scopes=repo&description=Repo%20Brain'>create a classic token</a> with the <b>repo</b> scope<br>"
                       "• Your own or an organization's repository: a <a href='https://github.com/settings/personal-access-tokens/new'>fine-grained token</a> "
-                      "with Contents: Read and write on that repository only (safer)"),
+                      "with Contents: Read and write on that repository only<br>• Got a team settings file? Use “Import team settings” above instead"),
     "st_show": ("แสดง", "Show"),
     "st_test": ("ทดสอบ", "Test"),
     "st_token_ok": ("ใช้ได้ — เข้าสู่ระบบเป็น {login}", "Works — signed in as {login}"),
@@ -139,6 +139,35 @@ T = {
                    "ส่วนที่ Claude อ่านจะส่งผ่าน Claude Desktop ของคุณเอง",
                    "Everything is stored on this computer. The app only contacts GitHub (update / check / add note) and PyPI "
                    "(dependency lookup). What Claude reads goes through your own Claude Desktop."),
+    # team settings file
+    "team_title": ("การตั้งค่าทีม", "Team settings"),
+    "team_hint": ("คนเดียวตั้งค่าแล้วส่งออกเป็นไฟล์ คนอื่นกดนำเข้าก็ได้รายการ repo, ที่เก็บข้อมูลทีม, เวอร์ชัน Odoo และ token ครบ "
+                  "(ชื่อผู้บันทึกและภาษาของแต่ละคนไม่ถูกเปลี่ยน) ไฟล์ที่มี token ให้ส่งทางช่องทางส่วนตัวเท่านั้น",
+                  "One person sets things up and exports a file; everyone else imports it to get the repositories, team "
+                  "knowledge location, Odoo version and token (each person's name and language stay). Share a file that "
+                  "contains a token privately only."),
+    "team_import": ("นำเข้าการตั้งค่าทีม…", "Import team settings…"),
+    "team_export": ("ส่งออกการตั้งค่าทีม…", "Export team settings…"),
+    "team_ask_token": ("ใส่ GitHub token ไว้ในไฟล์ด้วยไหม?\n\nใส่: คนในทีมไม่ต้องสร้าง token เอง (ควรใช้ fine-grained token "
+                       "ที่จำกัดเฉพาะ repo ข้อมูลทีม)\nไม่ใส่: แต่ละคนต้องใส่ token ของตัวเอง",
+                       "Include the GitHub token in the file?\n\nYes: teammates don't need their own token (use a fine-grained "
+                       "token limited to the knowledge repository)\nNo: everyone enters their own token"),
+    "team_exported": ("บันทึกแล้ว: {path}", "Saved: {path}"),
+    "team_exported_token": ("บันทึกแล้ว: {path}\n\nไฟล์นี้มี token อยู่ ส่งให้ทีมทางแชทส่วนตัวเท่านั้น "
+                            "อย่าใส่ไว้ใน repo, อีเมลกลุ่มใหญ่ หรือที่สาธารณะ",
+                            "Saved: {path}\n\nThis file contains the token. Send it to the team privately only — "
+                            "never commit it or post it anywhere public."),
+    "team_bad": ("เปิดไฟล์ไม่ได้: {err}", "Cannot open the file: {err}"),
+    "team_summary": ("จะใช้การตั้งค่าจากไฟล์นี้แทนของเดิม:\n\nRepo:\n{repos}\n\nข้อมูลทีม: {knowledge}\nOdoo: {odoo}\nToken: {token}\n\nดำเนินการต่อ?",
+                     "Replace your settings with this file:\n\nRepositories:\n{repos}\n\nTeam knowledge: {knowledge}\nOdoo: {odoo}\nToken: {token}\n\nContinue?"),
+    "team_has_token": ("มีในไฟล์", "included"),
+    "team_no_token": ("ไม่มีในไฟล์ (ใช้ของคุณเอง)", "not included (yours is kept)"),
+    "team_imported": ("นำเข้าแล้ว กด “อัปเดตข้อมูล” เพื่อโหลดโค้ดและข้อมูลทีม แล้วไปที่แท็บ “เชื่อมกับ Claude”",
+                      "Imported. Press “Update” to load the code and team notes, then open “Connect Claude”."),
+    "team_need_name": ("กรอก “ชื่อผู้บันทึก” ในหน้าตั้งค่าด้วย เพื่อให้รู้ว่าใครเป็นคนเพิ่มบันทึก",
+                       "Fill in “Your name” in Settings so notes show who added them."),
+    "team_need_folder": ("ข้อมูลทีมเป็นแบบโฟลเดอร์แชร์ ไปที่แท็บ “ข้อมูลทีม” แล้วเลือกโฟลเดอร์ในเครื่องของคุณ",
+                         "Team knowledge uses a shared folder: pick it on your computer in the “Team knowledge” tab."),
     "error": ("เกิดข้อผิดพลาด", "Something went wrong"),
 }
 
