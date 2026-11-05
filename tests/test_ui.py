@@ -1,0 +1,51 @@
+"""UI smoke tests (offscreen): window builds in both languages, actions update config."""
+import os
+
+import pytest
+
+os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+
+
+@pytest.fixture
+def win(tmp_path, monkeypatch):
+    monkeypatch.setenv("REPO_BRAIN_HOME", str(tmp_path / "home"))
+    from PySide6.QtWidgets import QApplication
+    from app import claude_connect
+    monkeypatch.setattr(claude_connect, "desktop_config_paths",
+                        lambda: [str(tmp_path / "Claude" / "claude_desktop_config.json")])
+    app = QApplication.instance() or QApplication([])
+    from app.ui.main_window import MainWindow
+    w = MainWindow()
+    yield w
+    w.close()
+    app.processEvents()
+
+
+def test_builds_and_switches_language(win):
+    from app.config import load_config
+    assert win.tabs.count() == 4
+    assert win.update_btn.text() == "อัปเดตข้อมูล"
+    win.lang.setCurrentIndex(1)
+    assert win.update_btn.text() == "Update" and load_config().language == "en"
+
+
+def test_knowledge_mode_saves(win):
+    from app.config import load_config
+    for b in win.kn_group.buttons():
+        if b.property("mode") == "github":
+            b.setChecked(True)
+    win.kn_repo.setText("https://github.com/me/team-notes")
+    win._knowledge_changed()
+    k = load_config().knowledge
+    assert k.mode == "github" and k.repo == "me/team-notes"
+    assert not win.gh_box.isHidden() and win.folder_box.isHidden()
+
+
+def test_connect_claude(win, tmp_path):
+    from app import claude_connect
+    (tmp_path / "Claude").mkdir()
+    from PySide6.QtWidgets import QMessageBox
+    QMessageBox.information = staticmethod(lambda *a, **k: None)
+    win._connect_claude()
+    assert claude_connect.status() == "connected"
+    assert "เชื่อมแล้ว" in win.cl_state.text()

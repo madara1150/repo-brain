@@ -1,0 +1,90 @@
+name: Build & Release
+
+# Push a tag like v1.0.0 to build Windows + macOS and publish a GitHub Release.
+# File names are fixed so README links (releases/latest/download/...) always work.
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Inno Setup
+        run: choco install innosetup --version 6.7.1 -y --no-progress
+      - name: Version from tag
+        shell: bash
+        run: echo "APP_VERSION=$(v='${{ github.ref_name }}'; [[ $v == v* ]] && echo ${v#v} || echo 1.0.0)" >> $GITHUB_ENV
+      - name: Build
+        shell: cmd
+        run: build_windows.bat
+      - name: Tests
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          .venv-win\Scripts\python -m pip install pytest
+          .venv-win\Scripts\python -m pytest -q
+      - name: MCP handshake of the built exe
+        shell: pwsh
+        run: |
+          $out = '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}' | dist\RepoBrain\RepoBrainMCP.exe
+          Write-Output $out
+          if ($out -notmatch '"repo-brain"') { exit 1 }
+      - name: Zip portable build
+        shell: pwsh
+        run: Compress-Archive -Path dist\RepoBrain -DestinationPath dist\RepoBrain-Windows-Portable.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: |
+            dist/RepoBrain-Windows-Setup.exe
+            dist/RepoBrain-Windows-Portable.zip
+
+  macos:
+    runs-on: macos-latest   # Apple Silicon
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Version from tag
+        run: echo "APP_VERSION=$(v='${{ github.ref_name }}'; [[ $v == v* ]] && echo ${v#v} || echo 1.0.0)" >> $GITHUB_ENV
+      - name: Build
+        env:
+          PYTHON: python
+        run: ./build_mac.sh
+      - name: Tests
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: |
+          .venv-mac/bin/pip install pytest
+          .venv-mac/bin/python -m pytest -q
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos
+          path: dist/RepoBrain-macOS.dmg
+
+  release:
+    if: github.ref_type == 'tag'
+    needs: [windows, macos]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: out
+          merge-multiple: true
+      - name: Checksums
+        run: cd out && sha256sum RepoBrain-* > SHA256SUMS.txt && cat SHA256SUMS.txt
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: out/*
+          generate_release_notes: true
