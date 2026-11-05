@@ -194,6 +194,11 @@ T = {
                        "Fill in “Your name” in Settings so notes show who added them."),
     "team_need_folder": ("ข้อมูลทีมเป็นแบบโฟลเดอร์แชร์ ไปที่แท็บ “ข้อมูลทีม” แล้วเลือกโฟลเดอร์ในเครื่องของคุณ",
                          "Team knowledge uses a shared folder: pick it on your computer in the “Team knowledge” tab."),
+    "btn_ok": ("ตกลง", "OK"),
+    "btn_cancel": ("ยกเลิก", "Cancel"),
+    "btn_yes": ("ใช่", "Yes"),
+    "btn_no": ("ไม่", "No"),
+    "btn_close": ("ปิด", "Close"),
     "error": ("เกิดข้อผิดพลาด", "Something went wrong"),
 }
 

@@ -44,8 +44,8 @@ def test_knowledge_mode_saves(win):
 def test_connect_claude(win, tmp_path):
     from app import claude_connect
     (tmp_path / "Claude").mkdir()
-    from PySide6.QtWidgets import QMessageBox
-    QMessageBox.information = staticmethod(lambda *a, **k: None)
+    import app.ui.main_window as mw
+    mw.info = lambda *a, **k: None
     win._connect_claude()
     assert claude_connect.status() == "connected"
     assert "เชื่อมแล้ว" in win.cl_state.text()
@@ -57,8 +57,9 @@ def test_import_team_file(win, tmp_path, monkeypatch):
     path = tmp_path / "team.repobrain"
     export_team(Config(sources=[Source("me/erp", "16.0")], knowledge=Knowledge(mode="github", repo="me/notes"),
                        github_token="tok"), str(path))
-    monkeypatch.setattr(QMessageBox, "question", staticmethod(lambda *a, **k: QMessageBox.Yes))
-    monkeypatch.setattr(QMessageBox, "information", staticmethod(lambda *a, **k: None))
+    import app.ui.main_window as mw
+    monkeypatch.setattr(mw, "ask", lambda *a, **k: QMessageBox.Yes)
+    monkeypatch.setattr(mw, "info", lambda *a, **k: None)
     win._import_team(str(path))
     cfg = load_config()
     assert cfg.sources[0].repo == "me/erp" and cfg.knowledge.repo == "me/notes" and cfg.github_token == "tok"
@@ -80,3 +81,12 @@ def test_teach_tab_loads_line_cases(win):
     win._mark_done()
     assert win.case_list.currentRow() == 1 and win.case_list.item(0).text().startswith("✓")
     assert len(win._load_done()) == 1
+
+
+def test_dialog_buttons_in_thai(win):
+    from PySide6.QtWidgets import QMessageBox
+    from app.ui.main_window import AddRepoDialog, make_box
+    box = make_box(win, QMessageBox.Question, "t", "x", QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel)
+    assert sorted(b.text() for b in box.buttons()) == sorted(["ใช่", "ไม่", "ยกเลิก"])
+    texts = [b.text() for b in AddRepoDialog(win, set()).findChildren(__import__("PySide6.QtWidgets").QtWidgets.QPushButton)]
+    assert "ตกลง" in texts and "ยกเลิก" in texts

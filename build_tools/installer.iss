@@ -1,7 +1,7 @@
 ; Inno Setup 6.5+ script -> dist\RepoBrain-Windows-Setup.exe
 ; Build: ISCC /DAppVersion=1.2.3 build_tools\installer.iss
 #ifndef AppVersion
-  #define AppVersion "1.0.3"
+  #define AppVersion "1.0.4"
 #endif
 #define AppName "Repo Brain"
 #define AppExe "RepoBrain.exe"

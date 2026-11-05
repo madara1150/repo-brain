@@ -4,8 +4,10 @@
 
 # Repo Brain
 
-**ให้ Claude Desktop รู้จักโค้ดใน GitHub และข้อมูลภายในของทีมคุณ · อัปเดตเมื่อกดปุ่มเท่านั้น · ใช้บัญชี Claude ของแต่ละคน ไม่ต้องมี API key**<br>
-**Give Claude Desktop your GitHub code and your team's internal knowledge · updates only when you press the button · uses each person's own Claude account, no API key**
+**Give Claude Desktop your GitHub code and your team's internal knowledge · updates only when you press the button · uses each person's own Claude account, no API key**<br>
+**ให้ Claude Desktop รู้จักโค้ดใน GitHub และความรู้ภายในของทีมคุณ · อัปเดตเมื่อกดปุ่มเท่านั้น · ไม่ต้องมี API key**
+
+**English** · [ภาษาไทย](README.th.md)
 
 ![Windows](https://img.shields.io/badge/Windows-10%20%7C%2011-0078D6?logo=windows&logoColor=white)
 ![macOS](https://img.shields.io/badge/macOS-11%2B%20(Apple%20Silicon)-000000?logo=apple&logoColor=white)
@@ -14,186 +16,55 @@
 ![Free](https://img.shields.io/badge/price-free-2563eb)
 ![License](https://img.shields.io/badge/license-MIT-0ea5a4)
 
-[ภาษาไทย](#-ภาษาไทย) · [English](#-english)
-
 <br>
 
 <a href="https://github.com/madara1150/repo-brain/releases/latest/download/RepoBrain-Windows-Setup.exe"><img src="https://img.shields.io/badge/Download-Windows%20Installer-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Download for Windows" height="44"></a>
 &nbsp;
 <a href="https://github.com/madara1150/repo-brain/releases/latest/download/RepoBrain-macOS.dmg"><img src="https://img.shields.io/badge/Download-macOS%20(.dmg)-111111?style=for-the-badge&logo=apple&logoColor=white" alt="Download for macOS" height="44"></a>
 
-<sub>Windows แบบไม่ต้องติดตั้ง / Portable: <a href="https://github.com/madara1150/repo-brain/releases/latest/download/RepoBrain-Windows-Portable.zip">RepoBrain-Windows-Portable.zip</a> · ทุกเวอร์ชัน / All versions: <a href="https://github.com/madara1150/repo-brain/releases">Releases</a></sub>
+<sub>Windows portable: <a href="https://github.com/madara1150/repo-brain/releases/latest/download/RepoBrain-Windows-Portable.zip">RepoBrain-Windows-Portable.zip</a> · All versions: <a href="https://github.com/madara1150/repo-brain/releases">Releases</a></sub>
 
 <br><br>
 
-<img src="docs/screenshots/main-th.png" width="900" alt="Repo Brain — หน้ารายการ repo และปุ่มอัปเดตข้อมูล">
+<img src="docs/screenshots/main-en.png" width="900" alt="Repo Brain — repository list and Update button">
 
 </div>
 
 ---
 
-## 🇹🇭 ภาษาไทย
+## Contents
 
-### ✨ ทำอะไรได้บ้าง
-
-| ✨ ฟีเจอร์ | คำอธิบาย |
-|---|---|
-| 🧠 **Claude รู้จักโค้ดของคุณ** | เพิ่ม repo จาก GitHub แล้ว Claude Desktop ค้นหาและอ่านโค้ดได้ ตอบพร้อมอ้างอิง `repo/path:บรรทัด` |
-| 🔘 **อัปเดตเมื่อกดปุ่มเท่านั้น** | ปกติใช้ข้อมูลชุดล่าสุดที่มีในเครื่อง พอกด **อัปเดตข้อมูล** จะดึงมาเฉพาะไฟล์ที่เปลี่ยนตั้งแต่ commit ก่อน จึงเร็วมาก |
-| 🔔 **รู้ว่ามีของใหม่** | ปุ่ม **ตรวจหาของใหม่** บอกว่า repo ไหนมี commit ใหม่ โดยไม่โหลดโค้ด Claude เองก็ถามได้ |
-| 🧩 **เข้าใจ Odoo** | รู้ว่า model ถูกสร้างและถูก `_inherit` ที่โมดูลไหน มี field อะไร โมดูลพึ่งโมดูลไหน ค้นป้ายภาษาไทยจาก `th.po` และ view ได้ |
-| 🔗 **หา repo ของ OCA ที่ขาดให้** | อ่าน `depends` แล้วบอกว่าโมดูลที่ขาดอยู่ใน repo ไหนของ OCA ตรงตามเวอร์ชัน Odoo แล้วเพิ่มได้ในคลิกเดียว |
-| 📦 **ตั้งค่าทั้งทีมด้วยไฟล์เดียว** | คนเดียวตั้งค่าแล้วส่งออก คนอื่นนำเข้าไฟล์ `.repobrain` ก็ได้ repo, ข้อมูลทีม และ token ครบ |
-| 👥 **ข้อมูลทีมที่แชร์กัน** | ทุกคนเพิ่มบันทึกได้ เช่น กฎธุรกิจ ขั้นตอนงาน ข้อตกลงของทีม เก็บใน GitHub repo แบบ private หรือโฟลเดอร์แชร์ แล้วทุกคนได้ข้อมูลเมื่อกดอัปเดต |
-| 🎓 **สอน Claude จากเคสจริง** | เปิดไฟล์ export แชท LINE แล้วแอปแยกเป็นเคส ปิดชื่อ เบอร์ อีเมล ให้ Claude วิเคราะห์ ถามจนเข้าใจ เทียบกับโค้ดจริง แล้วบันทึกหลังคุณยืนยัน |
-| 🗺️ **สอน flow การทำงาน** | Claude สัมภาษณ์ทีละขั้นจนอธิบาย flow กลับได้ถูก แล้วเขียนเป็นคู่มือให้ทั้งทีม |
-| 💬 **บอก Claude ให้จำ** | พิมพ์ใน Claude ว่า “จำไว้ให้ทีมว่า …” แล้วบันทึกจะถูกแชร์ให้ทั้งทีม |
-| 🔑 **ใช้ Claude ของแต่ละคน** | ทำงานเป็น MCP server ของ Claude Desktop จึงใช้บัญชีและโควตาของแต่ละคนเอง ไม่ต้องมี API key กลาง |
-| 🔒 **ข้อมูลอยู่ในเครื่อง** | index เก็บในเครื่องคุณ ไม่มี server กลาง ข้ามไฟล์ `.env`, key และไฟล์ binary ให้อัตโนมัติ |
-
-<p align="center">
-  <img src="docs/screenshots/knowledge-th.png" width="900" alt="หน้าข้อมูลทีม: เลือกที่เก็บและรายการบันทึก">
-</p>
-
-### 🧭 ทำงานยังไง
-
-```
-GitHub (โค้ด + ข้อมูลทีม) ──กด “อัปเดตข้อมูล”──▶ Repo Brain (index ในเครื่อง)
-                                                   │  MCP
-                                                   ▼
-                                        Claude Desktop ของคุณ ◀── คุณถาม
-```
-
-Claude ใช้เครื่องมือเหล่านี้ได้: `repo_status`, `search_code`, `read_file`, `list_files`, `list_modules`, `odoo_module`, `odoo_model`, `search_knowledge`, `list_knowledge`, `add_knowledge`, `update_knowledge`, `check_for_updates` และมีคำสั่งสำเร็จรูป (prompt) `analyze_line_case`, `teach_flow`
+- [What it does](#-what-it-does)
+- [How it works](#-how-it-works)
+- [Install](#-install)
+- [Quick start: teammates who received a settings file](#-quick-start-teammates-who-received-a-settings-file)
+- [First-time setup (admin)](#-first-time-setup-admin)
+- [Everyday use: ask questions in Claude Desktop](#-everyday-use-ask-questions-in-claude-desktop)
+- [Teach Claude: LINE cases and work flows](#-teach-claude-line-cases-and-work-flows)
+- [FAQ / Troubleshooting](#-faq--troubleshooting)
+- [Build it yourself](#️-build-it-yourself-developers)
 
 ---
 
-### 📥 ดาวน์โหลดและติดตั้ง
-
-| ระบบ | ไฟล์ |
-|---|---|
-| Windows 10 / 11 | [RepoBrain-Windows-Setup.exe](https://github.com/madara1150/repo-brain/releases/latest/download/RepoBrain-Windows-Setup.exe) หรือแบบไม่ต้องติดตั้ง [RepoBrain-Windows-Portable.zip](https://github.com/madara1150/repo-brain/releases/latest/download/RepoBrain-Windows-Portable.zip) |
-| macOS 11+ (Apple Silicon) | [RepoBrain-macOS.dmg](https://github.com/madara1150/repo-brain/releases/latest/download/RepoBrain-macOS.dmg) เปิดไฟล์แล้วลาก **Repo Brain** ไปไว้ใน **Applications** |
-
-ต้องติดตั้ง [Claude Desktop](https://claude.ai/download) ไว้ด้วย
-
----
-
-### 🚀 วิธีใช้
-
-> **คนในทีมที่ได้ไฟล์ตั้งค่าทีม (`.repobrain`) มาแล้ว**: ติดตั้งแอป → **ตั้งค่า** → **นำเข้าการตั้งค่าทีม…** → กรอก **ชื่อผู้บันทึก** → กด **อัปเดตข้อมูล** → ไปทำข้อ 4 ได้เลย
-
-1. **เพิ่ม repo**: แท็บ **โค้ดจาก GitHub** กด **เพิ่ม repo** ใส่ `owner/name` หรือ URL ของ GitHub
-2. **กด “อัปเดตข้อมูล”**: ครั้งแรกจะโหลดทั้ง repo (repo ขนาดหลายพันไฟล์ใช้ไม่กี่วินาที) ครั้งต่อไปจะดึงเฉพาะไฟล์ที่เปลี่ยน
-3. **ถ้าเป็น Odoo**: ไปที่ **ตั้งค่า** แล้วเลือกเวอร์ชัน Odoo จากนั้นกด **หา repo ที่โมดูลต้องใช้** เลือก repo ของ OCA ที่ต้องการ แล้วกดอัปเดตอีกครั้ง
-4. **เชื่อมกับ Claude**: แท็บ **เชื่อมกับ Claude** กด **เชื่อมกับ Claude Desktop** แล้ว **Quit** Claude Desktop และเปิดใหม่หนึ่งครั้ง
-
-   <img src="docs/screenshots/claude-th.png" width="760" alt="หน้าเชื่อมกับ Claude Desktop">
-
-5. **ตั้งค่าข้อมูลทีม** (ทำครั้งเดียว ใช้ค่าเดียวกันทั้งทีม)
-   - **GitHub repo แบบ private (แนะนำ)**: สร้าง repo private เช่น `team-knowledge` แล้วเชิญทุกคนในทีมเป็น collaborator ให้แต่ละคนสร้าง GitHub token แล้วใส่ในหน้า **ตั้งค่า**
-     - repo อยู่ใต้บัญชีของคนอื่น: ใช้ [classic token](https://github.com/settings/tokens/new?scopes=repo&description=Repo%20Brain) สิทธิ์ `repo` (fine-grained token ใช้กับ repo ของบัญชีคนอื่นไม่ได้)
-     - repo ของคุณเอง หรือ repo ใน organization: ใช้ [fine-grained token](https://github.com/settings/personal-access-tokens/new) สิทธิ์ *Contents: Read and write* เฉพาะ repo นี้ จะปลอดภัยกว่า ถ้าทีมใหญ่ แนะนำให้ย้าย repo ไปไว้ใน organization
-   - **โฟลเดอร์แชร์**: ทุกคนเลือกโฟลเดอร์เดียวกันที่ sync ด้วย Google Drive / OneDrive / NAS
-6. **แจกการตั้งค่าให้ทีม** (คนตั้งค่าทำครั้งเดียว): **ตั้งค่า** → **ส่งออกการตั้งค่าทีม…** จะได้ไฟล์ `.repobrain` ที่มีรายการ repo, ที่เก็บข้อมูลทีม, เวอร์ชัน Odoo และ token (เลือกได้ว่าจะใส่ token ไหม) ส่งไฟล์ให้ทีม**ทางแชทส่วนตัวเท่านั้น** ชื่อผู้บันทึกและภาษาของแต่ละคนจะไม่ถูกเปลี่ยน
-   - ถ้าใส่ token ในไฟล์ ให้ใช้ [fine-grained token](https://github.com/settings/personal-access-tokens/new) ของเจ้าของ repo ที่จำกัดเฉพาะ repo ข้อมูลทีม สิทธิ์ *Contents: Read and write* และตั้งวันหมดอายุ ทุกบันทึกจะ commit ในชื่อเจ้าของ token แต่ในบันทึกยังมีชื่อผู้บันทึกจริง
-7. **สอน Claude** (แท็บ **สอน Claude**)
-
-   <img src="docs/screenshots/teach-th.png" width="760" alt="แท็บสอน Claude: เคสจาก LINE และสอน flow">
-
-   - **เคสจาก LINE**: ใน LINE เปิดแชท → ตั้งค่า → **ส่งออกประวัติการแชท** แล้วกด **เปิดไฟล์ LINE (.txt)…** (หรือ **วางข้อความแชท…**) เลือกเคสทางซ้าย ตัดส่วนที่ไม่เกี่ยวออก กด **คัดลอกให้ Claude วิเคราะห์** แล้ววางในแชทใหม่ของ Claude Desktop เสร็จแล้วกด **ทำเสร็จแล้ว ✓** แอปจะจำไว้ว่าเคสไหนทำไปแล้ว
-   - **ภาพหน้าจอแชท**: ใน Claude Desktop กด **+** → **repo-brain** → **วิเคราะห์เคสจาก LINE** แล้วแนบรูป
-   - **สอน flow**: พิมพ์ชื่อ flow เช่น "ขอซื้อ-จัดซื้อ" กด **คัดลอกคำสั่งไปวางใน Claude** (หรือ **+** → **repo-brain** → **สอน flow การทำงาน**)
-   - Claude จะดูโค้ดและบันทึกเดิมก่อน ถามทีละ 1–3 ข้อ สรุปกลับให้คุณแก้ แสดงร่างทั้งฉบับ และจะบันทึกขึ้นคลังความรู้ **หลังคุณตอบยืนยันเท่านั้น** ถ้ามีบันทึกเรื่องเดียวกันอยู่แล้ว จะเสนอแก้บันทึกเดิมแทน
-   - ข้อความที่ส่งให้ Claude ถูกปิดชื่อ เบอร์โทร อีเมล เลขบัตร เลขบัญชี ไว้แล้ว และบันทึกจะเขียนเป็นบทบาท (เช่น "เจ้าหน้าที่พัสดุ") ไม่มีชื่อคน แต่ควรอ่านทวนก่อนส่งทุกครั้ง
-8. **ถามได้เลย** ใน Claude Desktop เช่น
-   - “model `purchase.request` ถูก inherit ที่โมดูลไหนบ้าง”
-   - “field ‘ผู้ขอซื้อ’ อยู่ใน model ไหน”
-   - “ใบขอซื้อของเราต้องอนุมัติกี่ขั้น (ดูข้อมูลทีมด้วย)”
-   - “จำไว้ให้ทีมว่า ปิดงวดบัญชีสิ้นปีต้องทำก่อน 30 ก.ย.”
-
----
-
-### ❓ คำถามที่พบบ่อย / แก้ปัญหา
-
-<details>
-<summary><b>macOS บอกว่า “ไม่สามารถเปิดได้เพราะไม่ได้มาจากนักพัฒนาที่ระบุตัวตน”</b></summary>
-
-แอปยังไม่ได้ลงชื่อกับ Apple ให้คลิกขวาที่ **Repo Brain** ใน Applications แล้วเลือก **Open** → **Open** (ทำครั้งเดียว) หรือไปที่ **System Settings → Privacy & Security** แล้วกด **Open Anyway**
-</details>
-
-<details>
-<summary><b>Windows ขึ้น “Windows protected your PC” (SmartScreen)</b></summary>
-
-กด **More info** → **Run anyway** เกิดขึ้นเพราะโปรแกรมยังไม่มีใบรับรอง code signing
-</details>
-
-<details>
-<summary><b>ใน Claude Desktop ไม่เห็น repo-brain</b></summary>
-
-ต้อง **Quit** Claude Desktop ให้สนิท (macOS: ⌘Q · Windows: คลิกขวาที่ไอคอนใน system tray → Quit) แล้วเปิดใหม่ ถ้าย้ายตำแหน่งแอปหรืออัปเดตแอป ให้กด **เชื่อมกับ Claude Desktop** อีกครั้ง บน macOS ให้ลากแอปไปไว้ใน Applications ก่อนกดเชื่อม (อย่าเชื่อมจากในไฟล์ .dmg)
-</details>
-
-<details>
-<summary><b>อัปเดตแล้วขึ้น “rate limit”</b></summary>
-
-GitHub จำกัดการเรียกแบบไม่มี token ไว้ที่ 60 ครั้งต่อชั่วโมง ใส่ GitHub token ในหน้า **ตั้งค่า** แล้วจะได้ 5,000 ครั้งต่อชั่วโมง
-</details>
-
-<details>
-<summary><b>ข้อมูลถูกส่งไปที่ไหนบ้าง</b></summary>
-
-index อยู่ในเครื่องคุณเท่านั้น แอปติดต่อแค่ GitHub (ตอนอัปเดต ตรวจ และเพิ่มบันทึก) และ PyPI (ตอนหา repo ของ OCA) ส่วนที่ Claude อ่านจะส่งผ่าน Claude Desktop ด้วยบัญชีของคุณ **อย่าเก็บข้อมูลภายในไว้ใน repo public**
-</details>
-
-<details>
-<summary><b>Claude Code ใช้ได้ไหม</b></summary>
-
-ได้ แท็บ **เชื่อมกับ Claude** มีคำสั่ง `claude mcp add …` ให้คัดลอกไปรันได้เลย
-</details>
-
----
-
-### 🛠️ Build เอง (สำหรับนักพัฒนา)
-
-```bash
-python3 -m venv .venv && .venv/bin/pip install -r requirements.txt pytest
-.venv/bin/python main.py            # เปิดแอป
-.venv/bin/python main.py --mcp      # MCP server (Claude Desktop เป็นคนเรียก)
-.venv/bin/python main.py --sync     # อัปเดตข้อมูลโดยไม่เปิดหน้าต่าง
-QT_QPA_PLATFORM=offscreen .venv/bin/python -m pytest
-./build_mac.sh                      # → dist/RepoBrain-macOS.dmg
-build_windows.bat                   # → dist\RepoBrain-Windows-Setup.exe + RepoBrain\ (portable)
-```
-
-push tag `v1.0.0` แล้ว GitHub Actions จะ build ทั้งสองระบบและสร้าง Release ให้
-
----
-
-## 🇬🇧 English
-
-### ✨ What it does
+## ✨ What it does
 
 | ✨ Feature | Description |
 |---|---|
 | 🧠 **Claude knows your code** | Add GitHub repositories and Claude Desktop can search and read them, citing `repo/path:line`. |
-| 🔘 **Updates only on demand** | Day to day the last local snapshot is used. Press **Update** to fetch only the files changed since the indexed commit — fast. |
-| 🔔 **Knows when there's news** | **Check for changes** tells you which repositories have new commits without downloading code. Claude can ask too. |
+| 🔘 **Updates only on demand** | Day to day the last local snapshot is used. Press **Update** to fetch only the files that changed — fast. |
+| 🔔 **Knows when there's news** | **Check for changes** shows which repositories have new commits without downloading code. |
 | 🧩 **Understands Odoo** | Where each model is defined and `_inherit`ed, its fields, module dependencies; Thai labels are searchable via `th.po` and views. |
-| 🔗 **Finds missing OCA repos** | Reads `depends` and tells you which OCA repository ships each missing module for your Odoo version, then adds them in one click. |
-| 📦 **One file sets up the team** | One person exports the setup; everyone else imports the `.repobrain` file and gets the repositories, team knowledge and token. |
-| 👥 **Shared team knowledge** | Everyone can add notes — business rules, procedures, conventions — stored in a private GitHub repository or a shared folder; everyone gets them on Update. |
-| 🎓 **Teach Claude from real cases** | Open a LINE chat export; the app splits it into cases and hides names, phone numbers and emails. Claude analyzes, asks until it understands, checks the code, and saves after you confirm. |
+| 🔗 **Finds missing OCA repos** | Reads `depends` and tells you which OCA repository ships each missing module for your Odoo version. |
+| 👥 **Shared team knowledge** | Everyone can add notes, stored in a private GitHub repository or a shared folder; everyone gets them on Update. |
+| 🎓 **Teach Claude from real cases** | Open a LINE chat export; the app splits it into cases and hides names, phone numbers and emails. Claude analyzes, asks until it understands, and saves after you confirm. |
 | 🗺️ **Teach a work flow** | Claude interviews you step by step until it can explain the flow back correctly, then writes it up for the team. |
-| 💬 **Ask Claude to remember** | Say “remember for the team that …” in Claude and the note is shared with the whole team. |
-| 🔑 **Each person's own Claude** | Runs as a Claude Desktop MCP server, so it uses each person's own account and quota — no shared API key. |
+| 📦 **One file sets up the team** | The admin exports a `.repobrain` file; teammates import it and get the repositories, team knowledge and token. |
+| 🔑 **Each person's own Claude** | Runs as a Claude Desktop MCP server, using each person's own account and quota — no shared API key. |
 | 🔒 **Data stays local** | The index lives on your computer, no central server. `.env` files, keys and binaries are skipped automatically. |
 
-<p align="center">
-  <img src="docs/screenshots/knowledge-en.png" width="900" alt="Team knowledge tab: storage choice and notes">
-</p>
+---
 
-### 🧭 How it works
+## 🧭 How it works
 
 ```
 GitHub (code + team notes) ──press “Update”──▶ Repo Brain (local index)
@@ -202,80 +73,238 @@ GitHub (code + team notes) ──press “Update”──▶ Repo Brain (local i
                                         your Claude Desktop ◀── you ask
 ```
 
-Tools Claude can use: `repo_status`, `search_code`, `read_file`, `list_files`, `list_modules`, `odoo_module`, `odoo_model`, `search_knowledge`, `list_knowledge`, `add_knowledge`, `update_knowledge`, `check_for_updates`, plus the prompts `analyze_line_case` and `teach_flow`
+- **Repo Brain** is the back end: it stores the code and knowledge, has the Update button and the teaching tools.
+- **Claude Desktop** is the chat: you ask there, and Claude looks things up in Repo Brain by itself.
 
 ---
 
-### 📥 Download & install
+## 📥 Install
 
-| System | File |
-|---|---|
-| Windows 10 / 11 | [RepoBrain-Windows-Setup.exe](https://github.com/madara1150/repo-brain/releases/latest/download/RepoBrain-Windows-Setup.exe) or portable [RepoBrain-Windows-Portable.zip](https://github.com/madara1150/repo-brain/releases/latest/download/RepoBrain-Windows-Portable.zip) |
-| macOS 11+ (Apple Silicon) | [RepoBrain-macOS.dmg](https://github.com/madara1150/repo-brain/releases/latest/download/RepoBrain-macOS.dmg) — open it and drag **Repo Brain** into **Applications** |
+You need [Claude Desktop](https://claude.ai/download) installed and signed in.
 
-You also need [Claude Desktop](https://claude.ai/download).
+**macOS 11+ (Apple Silicon)**
+1. Download [RepoBrain-macOS.dmg](https://github.com/madara1150/repo-brain/releases/latest/download/RepoBrain-macOS.dmg) and open it.
+2. Drag **Repo Brain** into **Applications** (required — don't run it from inside the .dmg).
+3. First launch: right-click **Repo Brain** in Applications → **Open** → **Open** (the app isn't notarized yet; once only).
+
+**Windows 10 / 11**
+1. Download [RepoBrain-Windows-Setup.exe](https://github.com/madara1150/repo-brain/releases/latest/download/RepoBrain-Windows-Setup.exe) and run it.
+2. If you see “Windows protected your PC”, click **More info** → **Run anyway**.
+3. Click through the installer and start **Repo Brain** from the Start menu.
 
 ---
 
-### 🚀 How to use
+## ⚡ Quick start: teammates who received a settings file
 
-> **Teammates who received a team settings file (`.repobrain`)**: install the app → **Settings** → **Import team settings…** → fill in **Your name** → press **Update** → continue at step 4.
+If your admin sent you a `.repobrain` file, five steps are enough:
 
-1. **Add repositories**: on **GitHub code**, press **Add repository** and enter `owner/name` or a GitHub URL.
-2. **Press “Update”**: the first time downloads the whole repository (a few seconds for thousands of files); later updates fetch only changed files.
-3. **For Odoo**: pick your Odoo version in **Settings**, press **Find dependency repos**, tick the OCA repositories you want and update again.
-4. **Connect Claude**: on **Connect Claude**, press **Connect to Claude Desktop**, then **Quit** Claude Desktop and reopen it once.
+1. Open Repo Brain → **Settings** → **Import team settings…** and pick the file.
 
-   <img src="docs/screenshots/claude-en.png" width="760" alt="Connect to Claude Desktop tab">
+   <img src="docs/screenshots/guide/06-settings-en.png" width="760" alt="Settings tab with team import and export buttons">
 
-5. **Set up team knowledge** (once; the whole team uses the same setting)
-   - **Private GitHub repository (recommended)**: create a private repository such as `team-knowledge`, invite the team as collaborators, and have each person enter a GitHub token in **Settings**.
-     - Repository owned by someone else's account: use a [classic token](https://github.com/settings/tokens/new?scopes=repo&description=Repo%20Brain) with the `repo` scope (fine-grained tokens can't reach another user's repositories).
-     - Your own repository, or one in an organization: use a [fine-grained token](https://github.com/settings/personal-access-tokens/new) with *Contents: Read and write* on that repository only — safer. For a larger team, move the repository into an organization.
-   - **Shared folder**: everyone picks the same folder synced with Google Drive / OneDrive / a NAS.
-6. **Share the setup with the team** (done once by whoever set it up): **Settings** → **Export team settings…** saves a `.repobrain` file with the repositories, team knowledge location, Odoo version and, if you choose, the token. Send it to the team **privately only**. Each person's name and language are left unchanged.
-   - If the file includes a token, use the repository owner's [fine-grained token](https://github.com/settings/personal-access-tokens/new) limited to the knowledge repository with *Contents: Read and write* and an expiry date. Notes are committed under the token owner's account, but each note still records who wrote it.
-7. **Teach Claude** (the **Teach Claude** tab)
+2. Check the summary and press **Yes**.
 
-   <img src="docs/screenshots/teach-en.png" width="760" alt="Teach Claude tab: LINE cases and work flows">
+   <img src="docs/screenshots/guide/08-import-summary-en.png" width="400" alt="Summary of the settings to import">
 
-   - **LINE cases**: in LINE open the chat → settings → **Export chat history**, then press **Open LINE export (.txt)…** (or **Paste chat text…**). Pick a case on the left, trim anything unrelated, press **Copy for Claude to analyze** and paste it into a new Claude Desktop chat. Press **Mark done ✓** afterwards; the app remembers which cases are done.
-   - **Chat screenshots**: in Claude Desktop press **+** → **repo-brain** → **วิเคราะห์เคสจาก LINE** and attach them.
-   - **Work flows**: type the flow's name, press **Copy prompt for Claude** (or **+** → **repo-brain** → **สอน flow การทำงาน**).
-   - Claude reads the code and existing notes first, asks 1–3 questions at a time, explains back for you to correct, shows the full draft, and saves to the knowledge repository **only after you confirm**. If a note on the same topic exists, it proposes updating it instead.
-   - Text sent to Claude has names, phone numbers, emails, ID and account numbers hidden, and notes describe roles (e.g. "procurement officer") rather than people — still, read it before sending.
-8. **Ask away** in Claude Desktop, for example
+3. Fill in **Your name** (shown on notes you add).
+4. Press **Update** in the bar at the bottom and wait for it to finish.
+5. Do [step 7: Connect Claude Desktop](#7-connect-claude-desktop), then start [asking questions](#-everyday-use-ask-questions-in-claude-desktop).
+
+---
+
+## 🛠️ First-time setup (admin)
+
+Done once by whoever looks after the system, then exported for the whole team.
+
+### 1. Add your repositories
+
+**GitHub code** tab → **＋ Add repository** → enter `owner/name` or paste a GitHub URL → branch (empty = the default branch) → **OK**
+
+<img src="docs/screenshots/guide/01-add-repo-en.png" width="460" alt="Add repository dialog">
+
+### 2. Press “Update”
+
+The first update downloads the whole repository (a few seconds for thousands of files). You can **Cancel** meanwhile.
+
+<img src="docs/screenshots/guide/02-updating-en.png" width="760" alt="Update in progress">
+
+When it's done the table shows the commit, last update and file count; the bottom bar summarizes everything.
+
+<img src="docs/screenshots/main-en.png" width="760" alt="Table after the update">
+
+> Later, press **Check for changes** to see which repositories have new commits, then **Update** — only changed files are fetched.
+
+### 3. (Odoo) Add the OCA repositories your modules need
+
+1. **Settings** → set **Odoo version** (e.g. 16.0).
+2. **GitHub code** → **Find dependency repos (Odoo)**.
+3. Tick the repositories → **Add selected** → press **Update** again.
+
+<img src="docs/screenshots/guide/03-deps-en.png" width="640" alt="OCA repositories that provide missing modules">
+
+Modules not found in OCA (such as `account`, `purchase`) are Odoo core — nothing to add.
+
+### 4. Choose where team knowledge lives
+
+1. Create a **private** GitHub repository such as `team-knowledge` (never public — it holds internal data).
+2. **Team knowledge** tab → **Private GitHub repository (recommended)** → enter `owner/team-knowledge` → keep the subfolder `knowledge`.
+
+<img src="docs/screenshots/guide/04-knowledge-github-en.png" width="760" alt="Team knowledge set to a private GitHub repository">
+
+> Alternative: a **shared folder** (Google Drive / OneDrive / NAS) needs no token but keeps no edit history.
+
+### 5. Create a GitHub token
+
+We recommend one **shared token** created by the admin and handed out through the team settings file.
+
+1. Open [create a fine-grained token](https://github.com/settings/personal-access-tokens/new).
+2. **Repository access** → **Only select repositories** → `team-knowledge`.
+3. **Permissions** → **Contents: Read and write** (nothing else).
+4. Set an **Expiration** (e.g. 1 year) → **Generate token** → copy it.
+5. **Settings** → paste into **GitHub token** → **Test** should say “Works — signed in as …”.
+
+<img src="docs/screenshots/guide/06-settings-en.png" width="760" alt="GitHub token field in Settings">
+
+> Without a shared token: for a repository owned by someone else's account, teammates need a [classic token](https://github.com/settings/tokens/new?scopes=repo&description=Repo%20Brain) with the `repo` scope (fine-grained tokens can't reach another user's repositories). In a GitHub organization, everyone can use fine-grained tokens.
+
+### 6. Export the settings file for the team
+
+**Settings** → **Export team settings…** → choose whether to include the token → save the `.repobrain` file.
+
+<img src="docs/screenshots/guide/07-export-token-en.png" width="400" alt="Include the token in the file?">
+
+Send the file **privately only** (it contains the token). Your name and language are not included.
+
+### 7. Connect Claude Desktop
+
+Everyone does this on their own computer.
+
+1. **Connect Claude** tab → **Connect to Claude Desktop**.
+
+   <img src="docs/screenshots/guide/09-claude-en.png" width="760" alt="Connect Claude tab">
+
+2. A “Connected” message appears → **OK**.
+
+   <img src="docs/screenshots/guide/10-connected-en.png" width="400" alt="Connected to Claude Desktop">
+
+3. **Quit Claude Desktop completely** and open it again once.
+   - macOS: with Claude in front, press **⌘Q**.
+   - Windows: right-click the Claude icon in the system tray → **Quit**.
+4. In Claude Desktop start a new chat → press **+** below the message box → **Connectors** → check that **repo-brain** is listed and on.
+
+---
+
+## 💬 Everyday use: ask questions in Claude Desktop
+
+1. Open **Claude Desktop** → new chat.
+2. Ask in plain language, for example
+   - “Confirming a purchase request fails with ‘no source of funds selected’ — what do I do?”
    - “Which modules inherit `purchase.request`?”
-   - “Which model has the ‘Requested by’ field?”
+   - “Which model has the ‘Requested by’ field and what's its default?”
    - “How many approval steps does our purchase request need? (check team notes too)”
-   - “Remember for the team: year-end closing must be done before 30 Sep.”
+3. The first time Claude uses repo-brain it asks for permission → **Allow** (you can allow it always).
+4. Claude answers with its sources, such as `repo/path:line` or the team note's title.
+
+**Ask Claude to remember something short:** say “remember for the team that …”; Claude drafts a note, and saves it once you confirm.
+
+**Add a note yourself:** **Team knowledge** → **＋ Add note** → title, tags, content → **Save and share**.
+
+<img src="docs/screenshots/guide/05-add-note-en.png" width="620" alt="Add a note for the team">
+
+**Keep it current:** when code changes or someone adds a note, press **Check for changes** → **Update** in the app. No need to restart Claude Desktop.
 
 ---
 
-### ❓ FAQ / Troubleshooting
+## 🎓 Teach Claude: LINE cases and work flows
+
+The **Teach Claude** tab turns real Q&A and what's in people's heads into team notes.
+
+<img src="docs/screenshots/teach-en.png" width="760" alt="Teach Claude tab">
+
+### A. Cases from LINE chats
+
+1. **Export the chat from LINE**
+   - Phone: open the chat/group → **≡** (top right) → **Settings** → **Export chat history** → send the .txt to your computer.
+   - LINE for PC/Mac: open the chat → **⋮** → **Save chat**.
+2. In Repo Brain, **Teach Claude** → **Open LINE export (.txt)…** (or copy text from LINE and use **Paste chat text…**).
+3. The app splits the chat into cases by day and time gaps; names become “คน A / คน B” and phone numbers, emails, ID and account numbers are hidden.
+4. Pick a case on the left → **read it** and remove anything unrelated on the right → **Copy for Claude to analyze**.
+
+   <img src="docs/screenshots/guide/11-teach-copied-en.png" width="760" alt="Case selected and copied for Claude">
+
+5. Start a **new chat** in Claude Desktop → paste (⌘V / Ctrl+V) → send.
+6. Answer Claude's questions (1–3 at a time) until it summarizes the case correctly.
+7. Claude shows the **full draft** → ask for changes, or reply “save” when it's right.
+8. Claude saves it to the team's knowledge repository → back in the app press **Mark done ✓**; the next case is selected.
+
+> Only screenshots? In Claude Desktop press **+** → **repo-brain** → **วิเคราะห์เคสจาก LINE** and attach them (images are not redacted automatically — blur names and numbers first).
+
+### B. Teach a work flow
+
+1. **Teach Claude** → type the flow's name, e.g. “purchase request to PO” → **Copy prompt for Claude**
+   (or in Claude Desktop: **+** → **repo-brain** → **สอน flow การทำงาน**).
+2. Paste into a new Claude Desktop chat → send.
+3. Claude reads the code first and describes how the system probably works, so you **correct it** instead of explaining from scratch.
+4. It asks in order: who starts → what they do in the system → who's next → how many approvals → where it ends → returns/cancellations.
+5. Every 2–3 rounds it summarizes for you to check; finally it **explains the whole flow back** until you say it's right.
+6. Claude shows the draft → you confirm → it's saved to the team's knowledge repository.
+
+### Rules Claude follows every time
+
+- Checks against the real code and says so when your description doesn't match it.
+- Searches existing notes first; for the same topic it proposes **updating the existing note**.
+- No names, phone numbers, emails or individual document numbers — roles instead (e.g. “procurement officer”).
+- **Never saves before you confirm**; notes carry a type (`case`, `flow`, `rule`, `howto`, `faq`) and related modules.
+
+Tools Claude uses: `repo_status`, `search_code`, `read_file`, `list_files`, `list_modules`, `odoo_module`, `odoo_model`, `search_knowledge`, `list_knowledge`, `add_knowledge`, `update_knowledge`, `check_for_updates`, plus the prompts `analyze_line_case` and `teach_flow`.
+
+---
+
+## ❓ FAQ / Troubleshooting
 
 <details>
 <summary><b>macOS says the app “can't be opened because it is from an unidentified developer”</b></summary>
 
-The app isn't notarized yet. Right-click **Repo Brain** in Applications and choose **Open** → **Open** (once), or go to **System Settings → Privacy & Security** and press **Open Anyway**.
+Right-click **Repo Brain** in Applications → **Open** → **Open** (once), or **System Settings → Privacy & Security** → **Open Anyway**.
 </details>
 
 <details>
 <summary><b>Windows shows “Windows protected your PC” (SmartScreen)</b></summary>
 
-Click **More info** → **Run anyway**. This appears because the program has no code-signing certificate yet.
+Click **More info** → **Run anyway**. The program has no code-signing certificate yet.
 </details>
 
 <details>
 <summary><b>Claude Desktop doesn't show repo-brain</b></summary>
 
-**Quit** Claude Desktop completely (macOS: ⌘Q · Windows: right-click the tray icon → Quit) and reopen it. After moving or updating the app, press **Connect to Claude Desktop** again. On macOS, drag the app into Applications before connecting (don't connect from inside the .dmg).
+1. **Quit** Claude Desktop completely and reopen it (closing the window isn't enough).
+2. The app's **Connect Claude** tab must say “Connected”; if it says it points at another copy, connect again.
+3. After moving or updating the app, press **Connect to Claude Desktop** again.
+4. On macOS, move the app into Applications before connecting.
+</details>
+
+<details>
+<summary><b>Claude can't find something, or the answer is outdated</b></summary>
+
+Claude uses your last local snapshot: press **Check for changes** → **Update** and ask again. If the module lives in another repository, add that repository first.
+</details>
+
+<details>
+<summary><b>Adding a note fails with 401, 403 or 404</b></summary>
+
+Use **Test** next to the token in **Settings**: the token must not be expired, must reach the knowledge repository and have *Contents: Read and write*.
 </details>
 
 <details>
 <summary><b>Update fails with “rate limit”</b></summary>
 
-GitHub allows 60 requests per hour without a token. Add a GitHub token in **Settings** to get 5,000 per hour.
+GitHub allows 60 requests per hour without a token. Add a token in **Settings** to get 5,000 per hour.
+</details>
+
+<details>
+<summary><b>The LINE export is split into the wrong cases</b></summary>
+
+LINE versions write dates slightly differently. If the split is wrong, copy just the part of the chat you need and use **Paste chat text…** instead.
 </details>
 
 <details>
@@ -292,19 +321,21 @@ Yes — the **Connect Claude** tab has a ready-to-copy `claude mcp add …` comm
 
 ---
 
-### 🛠️ Build it yourself (developers)
+## 🛠️ Build it yourself (developers)
 
 ```bash
-python3 -m venv .venv && .venv/bin/pip install -r requirements.txt pytest
+python3 -m venv .venv && .venv/bin/pip install -r requirements.txt pytest Pillow
 .venv/bin/python main.py            # run the app
 .venv/bin/python main.py --mcp      # MCP server (started by Claude Desktop)
 .venv/bin/python main.py --sync     # update without the window
 QT_QPA_PLATFORM=offscreen .venv/bin/python -m pytest
+QT_QPA_PLATFORM=offscreen .venv/bin/python tools/screenshots.py   # main screenshots
+QT_QPA_PLATFORM=offscreen .venv/bin/python tools/guide_shots.py   # step-by-step guide screenshots
 ./build_mac.sh                      # → dist/RepoBrain-macOS.dmg
 build_windows.bat                   # → dist\RepoBrain-Windows-Setup.exe + RepoBrain\ (portable)
 ```
 
-Push a tag such as `v1.0.0` and GitHub Actions builds both platforms and publishes the Release.
+Push a tag such as `v1.0.4` and GitHub Actions builds both platforms and publishes the Release.
 
 ---
 

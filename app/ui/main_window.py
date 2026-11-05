@@ -78,6 +78,45 @@ def local_time(iso: str) -> str:
         return "—"
 
 
+
+# ---------------------------------------------------------------------------- message boxes in the UI language
+_BUTTON_TEXT = {"Ok": "btn_ok", "Cancel": "btn_cancel", "Yes": "btn_yes", "No": "btn_no", "Close": "btn_close"}
+
+
+def localize(box):
+    """Qt ships no Thai translation for standard buttons: label them ourselves."""
+    if isinstance(box, QMessageBox):
+        for b in box.buttons():
+            key = _BUTTON_TEXT.get(QMessageBox.StandardButton(box.standardButton(b)).name)
+            if key:
+                b.setText(tr(key))
+    else:
+        for name, key in _BUTTON_TEXT.items():
+            b = box.button(getattr(QDialogButtonBox.StandardButton, name))
+            if b is not None:
+                b.setText(tr(key))
+    return box
+
+
+def make_box(parent, icon, title, text, buttons, default=None):
+    box = QMessageBox(icon, title, text, buttons, parent)
+    if default is not None:
+        box.setDefaultButton(default)
+    return localize(box)
+
+
+def ask(parent, title, text, buttons=QMessageBox.Yes | QMessageBox.No, default=None):
+    return QMessageBox.StandardButton(make_box(parent, QMessageBox.Question, title, text, buttons, default).exec())
+
+
+def info(parent, title, text):
+    make_box(parent, QMessageBox.Information, title, text, QMessageBox.Ok).exec()
+
+
+def warn(parent, title, text):
+    make_box(parent, QMessageBox.Warning, title, text, QMessageBox.Ok).exec()
+
+
 # ---------------------------------------------------------------------------- dialogs
 class AddRepoDialog(QDialog):
     def __init__(self, parent, existing: set[str]):
@@ -95,6 +134,7 @@ class AddRepoDialog(QDialog):
         self.err = label("", "hint")
         self.err.setStyleSheet(f"color: {styles.BAD}")
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        localize(buttons)
         buttons.accepted.connect(self._accept)
         buttons.rejected.connect(self.reject)
         lay = QVBoxLayout(self)
@@ -130,6 +170,7 @@ class KnowledgeDialog(QDialog):
         lay.addWidget(label(tr("kn_content")))
         lay.addWidget(self.content, 1)
         buttons = QDialogButtonBox(QDialogButtonBox.Cancel)
+        localize(buttons)
         self.save_btn = buttons.addButton(tr("kn_save"), QDialogButtonBox.AcceptRole)
         self.save_btn.setObjectName("primary")
         buttons.accepted.connect(self._accept)
@@ -165,6 +206,7 @@ class DepsDialog(QDialog):
         if unknown:
             lay.addWidget(label(tr("deps_core", mods=", ".join(unknown)), "hint"))
         buttons = QDialogButtonBox(QDialogButtonBox.Cancel)
+        localize(buttons)
         add = buttons.addButton(tr("deps_add"), QDialogButtonBox.AcceptRole)
         add.setObjectName("primary")
         buttons.accepted.connect(self.accept)
@@ -495,6 +537,7 @@ class MainWindow(QMainWindow):
         box.setPlainText(QGuiApplication.clipboard().text())
         lay.addWidget(box, 1)
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        localize(buttons)
         buttons.accepted.connect(dlg.accept)
         buttons.rejected.connect(dlg.reject)
         lay.addWidget(buttons)
@@ -735,7 +778,7 @@ class MainWindow(QMainWindow):
         if r < 0 or r >= len(self.cfg.sources):
             return
         repo = self.cfg.sources[r].repo
-        if QMessageBox.question(self, APP_NAME, tr("confirm_remove", repo=repo)) != QMessageBox.Yes:
+        if ask(self, APP_NAME, tr("confirm_remove", repo=repo)) != QMessageBox.Yes:
             return
         del self.cfg.sources[r]
         save_config(self.cfg)
@@ -747,7 +790,7 @@ class MainWindow(QMainWindow):
         from ..deps import suggest_repos
         missing = self.store.missing_depends()
         if not missing:
-            QMessageBox.information(self, tr("deps_title"), tr("deps_none"))
+            info(self, tr("deps_title"), tr("deps_none"))
             return
         ver = self.cfg.odoo_version
         self._run(lambda progress, cancel: suggest_repos(missing, ver, progress),
@@ -833,7 +876,7 @@ class MainWindow(QMainWindow):
                 self.progress.setRange(0, 100)
                 self.progress.setValue(int(frac * 100))
             if msg:
-                self.status.setText(tr("updating", msg=msg) if cancellable else f"{busy} {msg}")
+                self.status.setText(tr("updating", msg=_progress_text(msg)) if cancellable else f"{busy} {msg}")
 
         def finish():
             self.progress.hide()
@@ -849,7 +892,7 @@ class MainWindow(QMainWindow):
             finish()
             self.refresh()
             if err != "cancelled" and not quiet:
-                QMessageBox.warning(self, tr("error"), err)
+                warn(self, tr("error"), err)
         self.worker.progress.connect(progress)
         self.worker.done.connect(ok)
         self.worker.failed.connect(fail)
@@ -897,7 +940,7 @@ class MainWindow(QMainWindow):
         def done(where):
             self._fill_notes()
             self._fill_status()
-            QMessageBox.information(self, tr("kn_dialog"), tr("kn_saved", where=where))
+            info(self, tr("kn_dialog"), tr("kn_saved", where=where))
         self._run(job, done, busy=tr("kn_save"))
 
     # ---- claude / settings actions
@@ -905,19 +948,19 @@ class MainWindow(QMainWindow):
         try:
             path = claude_connect.install()
         except ValueError:
-            QMessageBox.warning(self, tr("error"), tr("cl_broken", path=claude_connect.desktop_config_path()))
+            warn(self, tr("error"), tr("cl_broken", path=claude_connect.desktop_config_path()))
             return
         except OSError as e:
-            QMessageBox.warning(self, tr("error"), str(e))
+            warn(self, tr("error"), str(e))
             return
         self._fill_claude()
-        QMessageBox.information(self, APP_NAME, tr("cl_done", path=path))
+        info(self, APP_NAME, tr("cl_done", path=path))
 
     def _disconnect_claude(self):
         try:
             claude_connect.uninstall()
         except (OSError, ValueError) as e:
-            QMessageBox.warning(self, tr("error"), str(e))
+            warn(self, tr("error"), str(e))
         self._fill_claude()
 
     def _settings_changed(self):
@@ -931,7 +974,7 @@ class MainWindow(QMainWindow):
         self._knowledge_changed()
         include = False
         if self.cfg.github_token:
-            ans = QMessageBox.question(self, tr("team_export"), tr("team_ask_token"),
+            ans = ask(self, tr("team_export"), tr("team_ask_token"),
                                        QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel, QMessageBox.Yes)
             if ans == QMessageBox.Cancel:
                 return
@@ -946,9 +989,9 @@ class MainWindow(QMainWindow):
         try:
             export_team(self.cfg, path, include)
         except OSError as e:
-            QMessageBox.warning(self, tr("error"), str(e))
+            warn(self, tr("error"), str(e))
             return
-        QMessageBox.information(self, tr("team_export"),
+        info(self, tr("team_export"),
                                 tr("team_exported_token" if include else "team_exported", path=path))
 
     def _import_team(self, path: str = ""):
@@ -960,7 +1003,7 @@ class MainWindow(QMainWindow):
         try:
             data = read_team(path)
         except TeamFileError as e:
-            QMessageBox.warning(self, tr("error"), tr("team_bad", err=str(e)))
+            warn(self, tr("error"), tr("team_bad", err=str(e)))
             return
         new = apply_team(self.cfg, data)
         repos = "\n".join(f"  • {s.repo} ({s.branch or tr('default_branch')})" for s in new.sources) or "  —"
@@ -968,7 +1011,7 @@ class MainWindow(QMainWindow):
         kn = {"github": f"GitHub: {k.repo}", "folder": tr("kn_folder"), "none": tr("kn_none")}.get(k.mode, k.mode)
         summary = tr("team_summary", repos=repos, knowledge=kn, odoo=new.odoo_version,
                      token=tr("team_has_token") if data.get("github_token") else tr("team_no_token"))
-        if QMessageBox.question(self, tr("team_import"), summary) != QMessageBox.Yes:
+        if ask(self, tr("team_import"), summary) != QMessageBox.Yes:
             return
         self.cfg = new
         save_config(self.cfg)
@@ -981,13 +1024,13 @@ class MainWindow(QMainWindow):
             self.author.setFocus()
         if k.mode == "folder" and not k.folder:
             msg += "\n\n" + tr("team_need_folder")
-        QMessageBox.information(self, tr("team_import"), msg)
+        info(self, tr("team_import"), msg)
 
     def _test_token(self):
         self._settings_changed()
         token = self.cfg.github_token
         self._run(lambda p, c: GitHub(token).current_user(),
-                  lambda login: QMessageBox.information(self, APP_NAME, tr("st_token_ok", login=login)),
+                  lambda login: info(self, APP_NAME, tr("st_token_ok", login=login)),
                   busy=tr("checking"))
 
     def closeEvent(self, event):
@@ -995,6 +1038,16 @@ class MainWindow(QMainWindow):
             self.worker.cancel.set()
             self.worker.wait(5000)
         super().closeEvent(event)
+
+
+def _progress_text(msg: str) -> str:
+    """Sync progress comes from the engine in English; show it in the UI language."""
+    if language() != "th":
+        return msg
+    import re
+    msg = re.sub(r": downloading$", ": กำลังดาวน์โหลด", msg)
+    msg = re.sub(r": indexing (\d+) files$", r": กำลังทำดัชนี \1 ไฟล์", msg)
+    return re.sub(r": (\d+) files$", r": \1 ไฟล์", msg)
 
 
 def _qcolor(hex_color):
