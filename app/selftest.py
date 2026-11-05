@@ -49,6 +49,7 @@ def run() -> int:
             assert init["result"]["serverInfo"]["name"] == "repo-brain"
             res = s.handle({"jsonrpc": "2.0", "id": 2, "method": "tools/call",
                             "params": {"name": "odoo_model", "arguments": {"model": "a.a"}}})
+            s.close()  # Windows cannot delete the temp folder while the database is open
             assert "defined in" in res["result"]["content"][0]["text"], json.dumps(res)
 
     check("sqlite fts5 trigram", fts)

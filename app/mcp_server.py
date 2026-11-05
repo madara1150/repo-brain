@@ -80,6 +80,11 @@ class Server:
         self.index_path = index_path or C.index_path()
         self._store = None
 
+    def close(self):
+        if self._store is not None:
+            self._store.close()
+            self._store = None
+
     @property
     def store(self) -> Store:
         if self._store is None:
