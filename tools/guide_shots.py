@@ -46,6 +46,7 @@ def main():
     from app.i18n import set_language, tr
     from app.ui import styles
     from app.ui.main_window import AddRepoDialog, DepsDialog, KnowledgeDialog, MainWindow
+    MainWindow.check_updates = lambda self, quiet=False: None  # no background check mid-screenshot
 
     fake_cfg = os.path.join(HOME, "claude", "claude_desktop_config.json")
     claude_connect.desktop_config_paths = lambda: [fake_cfg]
@@ -156,7 +157,7 @@ def main():
         box.close()
 
         # 7. connect to Claude Desktop
-        win.tabs.setCurrentIndex(3)
+        win.tabs.setCurrentIndex(4)
         pump(app)
         save(win, "09-claude", lang)
         box = message(win, QMessageBox.Information, "Repo Brain",
@@ -167,7 +168,7 @@ def main():
         box.close()
 
         # 8. teach: LINE case loaded and copied
-        win.tabs.setCurrentIndex(2)
+        win.tabs.setCurrentIndex(3)
         with open(os.path.join(ROOT, "tools", "demo_line_chat.txt"), encoding="utf-8") as fh:
             win._load_chat(fh.read())
         win._copy_case()

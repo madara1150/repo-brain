@@ -40,6 +40,7 @@
 - [Quick start: teammates who received a settings file](#-quick-start-teammates-who-received-a-settings-file)
 - [First-time setup (admin)](#-first-time-setup-admin)
 - [Everyday use: ask questions in Claude Desktop](#-everyday-use-ask-questions-in-claude-desktop)
+- [Team questions: whoever knows, answers](#-team-questions-whoever-knows-answers)
 - [Teach Claude: LINE cases and work flows](#-teach-claude-line-cases-and-work-flows)
 - [FAQ / Troubleshooting](#-faq--troubleshooting)
 - [Build it yourself](#️-build-it-yourself-developers)
@@ -58,6 +59,7 @@
 | 👥 **Shared team knowledge** | Everyone can add notes, stored in a private GitHub repository or a shared folder; everyone gets them on Update. |
 | 🎓 **Teach Claude from real cases** | Open a LINE chat export; the app splits it into cases and hides names, phone numbers and emails. Claude analyzes, asks until it understands, and saves after you confirm. |
 | 🗺️ **Teach a work flow** | Claude interviews you step by step until it can explain the flow back correctly, then writes it up for the team. |
+| 🙋 **Team questions** | Open questions nobody has confirmed yet; anyone who knows answers in the app. Answers are saved with the answerer's name, shared with the team and used by Claude. |
 | 📦 **One file sets up the team** | The admin exports a `.repobrain` file; teammates import it and get the repositories, team knowledge and token. |
 | 🔑 **Each person's own Claude** | Runs as a Claude Desktop MCP server, using each person's own account and quota — no shared API key. |
 | 🔒 **Data stays local** | The index lives on your computer, no central server. `.env` files, keys and binaries are skipped automatically. |
@@ -215,6 +217,26 @@ Everyone does this on their own computer.
 
 ---
 
+## 🙋 Team questions: whoever knows, answers
+
+The **Team questions** tab collects what the system can't answer by itself — who does it, when, under which rule. Anyone on the team who knows can answer. The number on the tab is how many still wait for an answer.
+
+<img src="docs/screenshots/questions-en.png" width="760" alt="Team questions tab: list, details and answer box">
+
+1. Fill in **Your name** in **Settings** first (it shows who answered).
+2. **Team questions** → choose **Waiting for an answer** and an area, or search.
+3. Pick a question on the left; read its details and any earlier answers.
+4. Type in **Your answer** → **Send answer**. It is saved to the team's knowledge repository at once with your name and time.
+5. Teammates see it after **Update**, and Claude uses it when answering.
+6. Want to ask the team something? **＋ Ask a new question**.
+
+- Several answers can be added to one question; simultaneous answers are merged automatically.
+- You can also answer through Claude Desktop, e.g. “any unanswered team questions about budget?”, then tell it the answer — Claude asks you to confirm the wording before saving.
+- No personal data (names, phone or account numbers) in answers — use roles.
+- Questions are files in the `questions/` folder of the team's knowledge repository.
+
+---
+
 ## 🎓 Teach Claude: LINE cases and work flows
 
 The **Teach Claude** tab turns real Q&A and what's in people's heads into team notes.
@@ -256,7 +278,7 @@ The **Teach Claude** tab turns real Q&A and what's in people's heads into team n
 - No names, phone numbers, emails or individual document numbers — roles instead (e.g. “procurement officer”).
 - **Never saves before you confirm**; notes carry a type (`case`, `flow`, `rule`, `howto`, `faq`) and related modules.
 
-Tools Claude uses: `repo_status`, `search_code`, `read_file`, `list_files`, `list_modules`, `odoo_module`, `odoo_model`, `search_knowledge`, `list_knowledge`, `add_knowledge`, `update_knowledge`, `check_for_updates`, plus the prompts `analyze_line_case` and `teach_flow`.
+Tools Claude uses: `repo_status`, `search_code`, `read_file`, `list_files`, `list_modules`, `odoo_module`, `odoo_model`, `search_knowledge`, `list_knowledge`, `add_knowledge`, `update_knowledge`, `list_questions`, `answer_question`, `ask_question`, `check_for_updates`, plus the prompts `analyze_line_case` and `teach_flow`.
 
 ---
 

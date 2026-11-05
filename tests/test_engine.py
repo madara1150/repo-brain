@@ -449,3 +449,110 @@ def test_case_preview_is_redacted():
     from app.line_chat import split_cases
     case = split_cases("2026/11/01(Sat)\n10:00\tสมศรี\tโทรหา 0812345678 ด่วน\n")[0]
     assert "0812345678" not in case.preview and "[เบอร์โทร]" in case.preview and "สมศรี" not in case.preview
+
+
+# ---------------------------------------------------------------- team questions
+QTEXT = """# งบจัดสรรเปิดให้กรอกเดือนไหน
+
+- status: open
+- area: งบประมาณ
+- note: knowledge/budget.md
+- asked: 2026-11-05
+- asked_by: x
+
+## รายละเอียด
+ผู้ใช้ถามบ่อย
+
+## คำตอบ
+"""
+
+
+def test_question_parse_and_answer():
+    from datetime import datetime
+    from app.questions import add_answer, parse
+    q = parse(QTEXT)
+    assert q["title"] == "งบจัดสรรเปิดให้กรอกเดือนไหน" and q["status"] == "open" and q["area"] == "งบประมาณ"
+    assert q["details"] == "ผู้ใช้ถามบ่อย" and q["answers"] == []
+    t = add_answer(QTEXT, "Boat", "มิถุนายน", datetime(2026, 11, 6, 9, 30))
+    t = add_answer(t, "Ann", "ส่งภายในกรกฎาคม\nบรรทัดสอง", datetime(2026, 11, 7, 10, 0))
+    q = parse(t)
+    assert q["status"] == "answered" and [a["author"] for a in q["answers"]] == ["Boat", "Ann"]
+    assert q["answers"][1]["text"] == "ส่งภายในกรกฎาคม\nบรรทัดสอง" and q["answers"][0]["date"] == "2026-11-06 09:30"
+
+
+def test_answer_question_folder_and_ask(tmp_path):
+    from app.config import Config, Knowledge
+    from app.questions import answer_question, ask_question, list_questions
+    from app.sync import LOCAL_KNOWLEDGE, Syncer
+    folder = tmp_path / "team"
+    (folder / "questions").mkdir(parents=True)
+    (folder / "questions" / "budget-001.md").write_text(QTEXT, encoding="utf-8")
+    cfg = Config(knowledge=Knowledge(mode="folder", folder=str(folder)), author="Boat")
+    store = make_store()
+    Syncer(cfg, store, FakeGitHub({}, "")).run()
+    qs = list_questions(store, LOCAL_KNOWLEDGE)
+    assert [q["path"] for q in qs] == ["questions/budget-001.md"]
+    answer_question(cfg, store, "questions/budget-001.md", "มิถุนายน")
+    assert "### Boat ·" in (folder / "questions" / "budget-001.md").read_text(encoding="utf-8")
+    assert list_questions(store, LOCAL_KNOWLEDGE)[0]["status"] == "answered"  # indexed before any Update
+    path = ask_question(cfg, store, "ใครอนุมัติเงินยืม", "ยืมเงิน", "ถามบ่อย")
+    assert (folder / path).exists() and len(list_questions(store, LOCAL_KNOWLEDGE)) == 2
+    import pytest as _p
+    from app.knowledge import KnowledgeError
+    with _p.raises(KnowledgeError):
+        answer_question(cfg, store, "knowledge/note.md", "x")  # only question files
+    with _p.raises(KnowledgeError):
+        answer_question(cfg, store, "questions/budget-001.md", "   ")
+
+
+def test_answer_question_github_retries_on_conflict():
+    from app.config import Config, Knowledge
+    from app.github import GitHubError
+    from app.questions import answer_question
+    store = make_store()
+    with store.conn:
+        store.put_file("me/notes", "questions/q1.md", "knowledge", QTEXT)
+
+    class GH(FakeGitHub):
+        def __init__(self):
+            super().__init__({}, "")
+            self.remote = QTEXT
+            self.calls = 0
+
+        def get_file(self, repo, branch, path):
+            return self.remote.encode(), f"sha{self.calls}"
+
+        def put_file(self, repo, branch, path, content, message, sha=""):
+            self.calls += 1
+            if self.calls == 1:  # someone else answered meanwhile
+                self.remote = self.remote + "### Other · 2026-11-06 08:00\nก่อนหน้า\n"
+                raise GitHubError("conflict", 409)
+            self.put.append((path, sha, content.decode()))
+            return {}
+    gh = GH()
+    cfg = Config(knowledge=Knowledge(mode="github", repo="me/notes"), github_token="t", author="Boat")
+    answer_question(cfg, store, "questions/q1.md", "คำตอบใหม่", gh=gh)
+    saved = gh.put[0][2]
+    assert "### Other ·" in saved and "### Boat ·" in saved and saved.index("Other") < saved.index("Boat")
+    assert gh.put[0][1] == "sha1"  # wrote against the re-read version
+
+
+def test_mcp_question_tools(tmp_path):
+    from app.config import Config, Knowledge, save_config
+    from app.mcp_server import Server
+    from app.sync import Syncer
+    folder = tmp_path / "team"
+    (folder / "questions").mkdir(parents=True)
+    (folder / "questions" / "budget-001.md").write_text(QTEXT, encoding="utf-8")
+    cfg = Config(knowledge=Knowledge(mode="folder", folder=str(folder)), author="Boat")
+    save_config(cfg)
+    Syncer(cfg, make_store(), FakeGitHub({}, "")).run()
+    s = Server()
+    text, err = _call(s, "list_questions")
+    assert not err and "งบจัดสรรเปิดให้กรอกเดือนไหน" in text and "[open]" in text
+    text, err = _call(s, "answer_question", path="questions/budget-001.md", answer="มิถุนายน")
+    assert not err, text
+    text, _ = _call(s, "list_questions", status="answered")
+    assert "1 answer" in text
+    text, err = _call(s, "ask_question", question="ใครดูแลเมนูทดสอบ", area="ทั้งระบบ")
+    assert not err and "questions/" in text

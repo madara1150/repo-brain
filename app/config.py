@@ -9,7 +9,7 @@ from dataclasses import asdict, dataclass, field
 APP_NAME = "Repo Brain"
 APP_ID = "RepoBrain"
 MCP_NAME = "repo-brain"
-VERSION = "1.0.4"
+VERSION = "1.0.5"
 
 
 def data_dir() -> str:

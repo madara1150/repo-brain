@@ -2,7 +2,7 @@
 # The same executable runs the window, or the MCP server with --mcp (started by Claude Desktop).
 import os
 ROOT = os.path.abspath(os.path.join(SPECPATH, ".."))
-VERSION = os.environ.get("APP_VERSION", "1.0.4")
+VERSION = os.environ.get("APP_VERSION", "1.0.5")
 
 EXCLUDES = ["tkinter", "unittest", "PySide6.QtWebEngineCore", "PySide6.QtWebEngineWidgets", "PySide6.Qt3DCore",
             "PySide6.QtQuick", "PySide6.QtQml", "PySide6.QtMultimedia", "PySide6.QtCharts",

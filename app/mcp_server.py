@@ -26,6 +26,9 @@ dependencies, models), then read_file for details. Thai labels are searchable wi
 - Team knowledge (business rules, conventions, how-tos written by the team) comes from search_knowledge; \
 prefer it for "how do we..." questions and mention when it disagrees with the code.
 - add_knowledge / update_knowledge save a note for the whole team: only after the user asked to record something AND confirmed the final draft. Never store personal data (names, phones, emails, ID/account numbers) - use roles.
+- Team questions (questions/*.md): answered ones are facts confirmed by the team - prefer them over guesses from code; \
+open ones mean nobody has confirmed it yet, so say so. When a user knows an answer, they may give it to you and you save it \
+with answer_question after they confirm the wording.
 - When the user wants to teach you (a LINE chat case, screenshots, or a work flow), interview them a few questions at a time, check against the code, explain it back until they agree, show the draft, then save on confirmation (the analyze_line_case and teach_flow prompts describe this in detail).
 - The snapshot is only refreshed when a user presses Update in the Repo Brain app. If something seems \
 missing or outdated, say so and suggest pressing Update (check_for_updates tells whether GitHub has newer commits)."""
@@ -80,6 +83,16 @@ TOOLS = [
           {"path": S, "content": {**S, "description": "full new Markdown body (without the title)"},
            "title": {**S, "description": "new title; omit to keep"}, "type": {"type": "string", "enum": NOTE_TYPES},
            "modules": {"type": "array", "items": S}, "tags": {"type": "array", "items": S}}, ["path", "content"]),
+    _tool("list_questions", "List the team's questions (questions/*.md in the knowledge repository): open ones waiting "
+          "for an answer, or answered ones whose answers are facts confirmed by the team. Read one with read_file.",
+          {"status": {"type": "string", "enum": ["open", "answered", "all"], "description": "default open"},
+           "area": {**S, "description": "Thai area name, e.g. งบประมาณ"}, "query": S}),
+    _tool("answer_question", "Append an answer to a team question and push it for everyone. Only use when the user "
+          "states the answer themselves and confirms the exact wording; never invent or infer answers. No personal data.",
+          {"path": {**S, "description": "questions/<file>.md as listed by list_questions"},
+           "answer": S}, ["path", "answer"]),
+    _tool("ask_question", "Add a new open question for the team when the user asks to record something nobody knows yet.",
+          {"question": S, "area": S, "details": S}, ["question", "area"]),
     _tool("check_for_updates", "Ask GitHub whether newer commits exist than the snapshot (reads no code). The "
           "snapshot itself is only updated with the Update button in the Repo Brain app."),
 ]
@@ -119,7 +132,7 @@ class Server:
             lines.append("- nothing indexed yet")
         c = st.counts()
         lines.append(f"Totals: {c['files']} code files, {c['modules']} Odoo modules, {c['models']} models, "
-                     f"{c['knowledge']} knowledge notes. Odoo version setting: {cfg.odoo_version}.")
+                     f"{c['knowledge']} knowledge notes, {c['questions']} team questions. Odoo version setting: {cfg.odoo_version}.")
         missing = st.missing_depends()
         if missing:
             lines.append(f"Dependencies not in the snapshot ({len(missing)}; usually Odoo core): "
@@ -257,7 +270,8 @@ class Server:
         return self._format_hits(res)
 
     def t_list_knowledge(self, a):
-        rows, total = self.store.list_files(kind="knowledge", limit=500)
+        rows, total = self.store.list_files(kind="knowledge", limit=5000)
+        rows = [r for r in rows if not r["path"].startswith("questions/")]  # see list_questions
         if not rows:
             return "No team knowledge notes yet."
         out = []
@@ -285,6 +299,42 @@ class Server:
         except KnowledgeError as e:
             raise ToolError(str(e)) from None
         return f"Updated for the team: {where}. Teammates get it after they press Update."
+
+    def t_list_questions(self, a):
+        from .questions import list_questions
+        from .sync import knowledge_repo
+        repo = knowledge_repo(C.load_config())
+        if not repo:
+            raise ToolError("No team knowledge location is configured in the Repo Brain app.")
+        status = (a.get("status") or "open").strip()
+        area, query = (a.get("area") or "").strip(), (a.get("query") or "").strip().lower()
+        qs = [q for q in list_questions(self.store, repo)
+              if (status == "all" or q["status"] == status) and (not area or area in q["area"])
+              and (not query or query in (q["title"] + q["details"]).lower())]
+        if not qs:
+            return "No matching questions."
+        out = [f"{len(qs)} question(s):"]
+        for q in qs[:200]:
+            out.append(f"- [{q['status']}] {q['area']} | {q['title']}  ({q['path']}, {len(q['answers'])} answer(s))")
+        return "\n".join(out)
+
+    def t_answer_question(self, a):
+        from .knowledge import KnowledgeError
+        from .questions import answer_question
+        try:
+            answer_question(C.load_config(), self.store, a["path"], a["answer"])
+        except KnowledgeError as e:
+            raise ToolError(str(e)) from None
+        return f"Answer saved to {a['path']} for the team. Teammates see it after they press Update."
+
+    def t_ask_question(self, a):
+        from .knowledge import KnowledgeError
+        from .questions import ask_question
+        try:
+            path = ask_question(C.load_config(), self.store, a["question"], a["area"], a.get("details", ""))
+        except KnowledgeError as e:
+            raise ToolError(str(e)) from None
+        return f"Question added for the team: {path}"
 
     def t_check_for_updates(self, a):
         from .sync import check_updates

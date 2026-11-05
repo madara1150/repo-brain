@@ -186,7 +186,8 @@ class Store:
     def counts(self) -> dict:
         q = lambda sql: self.conn.execute(sql).fetchone()[0]  # noqa: E731
         return {"files": q("SELECT COUNT(*) FROM files WHERE kind='code'"),
-                "knowledge": q("SELECT COUNT(*) FROM files WHERE kind='knowledge'"),
+                "knowledge": q("SELECT COUNT(*) FROM files WHERE kind='knowledge' AND path NOT LIKE 'questions/%'"),
+                "questions": q("SELECT COUNT(*) FROM files WHERE kind='knowledge' AND path LIKE 'questions/%'"),
                 "modules": q("SELECT COUNT(*) FROM modules"),
                 "models": q("SELECT COUNT(DISTINCT model) FROM models")}
 

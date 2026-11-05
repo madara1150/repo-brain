@@ -23,6 +23,7 @@ def prepare():
     os.makedirs(HOME)
     kn = os.path.join(HOME, "team-notes")
     shutil.copytree(os.path.join(ROOT, "tools", "demo_knowledge"), kn)
+    shutil.copytree(os.path.join(ROOT, "tools", "demo_questions"), os.path.join(kn, "questions"))
     cfg = {"sources": [{"repo": "OCA/purchase-workflow", "branch": "16.0"},
                        {"repo": "OCA/l10n-thailand", "branch": "16.0"},
                        {"repo": "OCA/server-ux", "branch": "16.0"}],
@@ -46,6 +47,7 @@ def main():
     from app.config import load_config, save_config
     from app.ui import styles
     from app.ui.main_window import MainWindow
+    MainWindow.check_updates = lambda self, quiet=False: None  # the real check result is set below
 
     # show the connected state without touching this computer's real Claude config
     fake_cfg = os.path.join(HOME, "claude", "claude_desktop_config.json")
@@ -72,11 +74,14 @@ def main():
         win.checks = {c.repo: c for c in checks}
         win.refresh()
         win.show()
-        for idx, name in ((0, "main"), (1, "knowledge"), (2, "teach"), (3, "claude"), (4, "settings")):
+        for idx, name in ((0, "main"), (1, "knowledge"), (2, "questions"), (3, "teach"), (4, "claude"), (5, "settings")):
             win.tabs.setCurrentIndex(idx)
             if idx == 1:
                 win.kn_list.setCurrentRow(1)
             if idx == 2:
+                win.q_filter.setCurrentIndex(2)
+                win.q_list.setCurrentRow(0)
+            if idx == 3:
                 with open(os.path.join(ROOT, "tools", "demo_line_chat.txt"), encoding="utf-8") as fh:
                     win._load_chat(fh.read())
                 win.flow_topic.setText("ขอซื้อ-จัดซื้อ" if lang == "th" else "Purchase request to PO")

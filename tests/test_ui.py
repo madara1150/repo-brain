@@ -23,7 +23,7 @@ def win(tmp_path, monkeypatch):
 
 def test_builds_and_switches_language(win):
     from app.config import load_config
-    assert win.tabs.count() == 5
+    assert win.tabs.count() == 6
     assert win.update_btn.text() == "อัปเดตข้อมูล"
     win.lang.setCurrentIndex(1)
     assert win.update_btn.text() == "Update" and load_config().language == "en"
@@ -90,3 +90,34 @@ def test_dialog_buttons_in_thai(win):
     assert sorted(b.text() for b in box.buttons()) == sorted(["ใช่", "ไม่", "ยกเลิก"])
     texts = [b.text() for b in AddRepoDialog(win, set()).findChildren(__import__("PySide6.QtWidgets").QtWidgets.QPushButton)]
     assert "ตกลง" in texts and "ยกเลิก" in texts
+
+
+def test_questions_tab_answers(win, tmp_path, monkeypatch):
+    import app.ui.main_window as mw
+    from app.config import save_config
+    from app.sync import Syncer
+    from app.store import Store
+    from app.config import index_path
+    folder = tmp_path / "team"
+    (folder / "questions").mkdir(parents=True)
+    (folder / "questions" / "q1.md").write_text(
+        "# ใครอนุมัติเงินยืม\n\n- status: open\n- area: ยืมเงิน\n\n## รายละเอียด\n-\n\n## คำตอบ\n", encoding="utf-8")
+    win.cfg.knowledge.mode, win.cfg.knowledge.folder = "folder", str(folder)
+    save_config(win.cfg)
+    st = Store(index_path())
+    Syncer(win.cfg, st).run()
+    st.close()
+    win._load_questions()
+    assert win.q_list.count() == 1 and "คำถามทีม (1)" == win.tabs.tabText(win.questions_index)
+    warned = []
+    monkeypatch.setattr(mw, "warn", lambda *a, **k: warned.append(a))
+    win.q_answer.setPlainText("ผอ.กองคลัง")
+    win._send_answer()  # no name yet -> asks for it
+    assert warned and win.tabs.currentIndex() == win.settings_index
+    win.cfg.author = "Boat"
+    win._send_answer()
+    win.worker.wait(10000)
+    from PySide6.QtWidgets import QApplication
+    QApplication.processEvents()
+    assert "### Boat ·" in (folder / "questions" / "q1.md").read_text(encoding="utf-8")
+    assert win.tabs.tabText(win.questions_index) == "คำถามทีม"

@@ -118,6 +118,12 @@ class GitHub:
         return self._json("/user").get("login", "")
 
     # ---- writing ----
+    def get_file(self, repo: str, branch: str, path: str) -> tuple[bytes, str]:
+        """(content, sha) of a file, straight from the repository (not cached)."""
+        ref = f"?ref={urllib.parse.quote(branch)}" if branch else ""
+        data = self._json(f"/repos/{repo}/contents/{urllib.parse.quote(path)}{ref}")
+        return base64.b64decode(data.get("content", "")), data.get("sha", "")
+
     def file_sha(self, repo: str, branch: str, path: str) -> str:
         ref = f"?ref={urllib.parse.quote(branch)}" if branch else ""
         return self._json(f"/repos/{repo}/contents/{urllib.parse.quote(path)}{ref}").get("sha", "")

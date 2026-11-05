@@ -20,7 +20,7 @@ from ..config import (APP_NAME, config_path, TEAM_EXT, VERSION, Source, TeamFile
 from ..github import GitHub, parse_repo
 from ..i18n import language, set_language, tr
 from ..store import Store
-from .. import line_chat, teach
+from .. import line_chat, questions, teach
 from ..sync import Cancelled, Syncer, check_updates, knowledge_repo
 from . import styles
 
@@ -264,6 +264,7 @@ class MainWindow(QMainWindow):
         self.tabs = QTabWidget()
         self.tabs.addTab(self._sources_tab(), tr("tab_sources"))
         self.tabs.addTab(self._knowledge_tab(), tr("tab_knowledge"))
+        self.questions_index = self.tabs.addTab(self._questions_tab(), tr("tab_questions"))
         self.tabs.addTab(self._teach_tab(), tr("tab_teach"))
         self.tabs.addTab(self._claude_tab(), tr("tab_claude"))
         self.settings_index = self.tabs.addTab(self._settings_tab(), tr("tab_settings"))
@@ -408,6 +409,200 @@ class MainWindow(QMainWindow):
         lay.addLayout(row)
         self._knowledge_visibility()
         return page
+
+    def _questions_tab(self):
+        page = QWidget()
+        lay = QVBoxLayout(page)
+        lay.setContentsMargins(0, 10, 0, 0)
+        self.questions = []
+        lay.addWidget(label(tr("q_hint"), "hint"))
+        row = QHBoxLayout()
+        self.q_filter = QComboBox()
+        for key, val in (("q_open", "open"), ("q_answered", "answered"), ("q_all", "all")):
+            self.q_filter.addItem(tr(key), val)
+        self.q_area = QComboBox()
+        self.q_search = QLineEdit()
+        self.q_search.setPlaceholderText(tr("q_search"))
+        self.q_count = label("", "hint", wrap=False)
+        new_btn = QPushButton("＋ " + tr("q_new"))
+        new_btn.clicked.connect(self._new_question)
+        for w in (self.q_filter, self.q_area):
+            w.currentIndexChanged.connect(lambda *_: self._fill_questions())
+        self.q_search.textChanged.connect(lambda *_: self._fill_questions())
+        row.addWidget(self.q_filter)
+        row.addWidget(self.q_area)
+        row.addWidget(self.q_search, 1)
+        row.addWidget(self.q_count)
+        row.addWidget(new_btn)
+        lay.addLayout(row)
+
+        split = QSplitter()
+        self.q_list = QListWidget()
+        self.q_list.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.q_list.setWordWrap(True)
+        self.q_list.currentItemChanged.connect(lambda *_: self._show_question())
+        right = QWidget()
+        rl = QVBoxLayout(right)
+        rl.setContentsMargins(0, 0, 0, 0)
+        self.q_view = QTextBrowser()
+        self.q_view.setOpenExternalLinks(True)
+        rl.addWidget(self.q_view, 3)
+        rl.addWidget(label(tr("q_your_answer"), "sectionTitle"))
+        self.q_answer = QPlainTextEdit()
+        self.q_answer.setPlaceholderText(tr("q_answer_ph"))
+        rl.addWidget(self.q_answer, 2)
+        r2 = QHBoxLayout()
+        self.q_status = label("", "hint")
+        r2.addWidget(self.q_status, 1)
+        self.q_send = QPushButton(tr("q_send"))
+        self.q_send.setObjectName("primary")
+        self.q_send.clicked.connect(self._send_answer)
+        r2.addWidget(self.q_send)
+        rl.addLayout(r2)
+        split.addWidget(self.q_list)
+        split.addWidget(right)
+        split.setSizes([420, 600])
+        lay.addWidget(split, 1)
+        self._load_questions()
+        return page
+
+    def _load_questions(self, keep_path: str = ""):
+        from ..sync import knowledge_repo
+        repo = knowledge_repo(self.cfg)
+        self.questions = questions.list_questions(self.store, repo) if repo else []
+        areas = sorted({q["area"] for q in self.questions if q["area"]})
+        current = self.q_area.currentData()
+        self.q_area.blockSignals(True)
+        self.q_area.clear()
+        self.q_area.addItem(tr("q_all_areas"), "")
+        for a in areas:
+            self.q_area.addItem(a, a)
+        idx = self.q_area.findData(current)
+        self.q_area.setCurrentIndex(max(idx, 0))
+        self.q_area.blockSignals(False)
+        self._fill_questions(keep_path)
+        n_open = sum(1 for q in self.questions if q["status"] == "open")
+        if hasattr(self, "questions_index"):
+            self.tabs.setTabText(self.questions_index, tr("tab_questions") + (f" ({n_open})" if n_open else ""))
+
+    def _fill_questions(self, keep_path: str = ""):
+        keep_path = keep_path or (self.q_list.currentItem().data(Qt.UserRole) if self.q_list.currentItem() else "")
+        status, area = self.q_filter.currentData(), self.q_area.currentData()
+        text = self.q_search.text().strip().lower()
+        shown = [q for q in self.questions
+                 if (status == "all" or q["status"] == status) and (not area or q["area"] == area)
+                 and (not text or text in (q["title"] + " " + q["details"]).lower())]
+        self.q_list.blockSignals(True)
+        self.q_list.clear()
+        for q in shown:
+            mark = "✓ " if q["status"] == "answered" else ""
+            item = QListWidgetItem(f"{mark}{q['title']}\n{q['area']} · {tr('q_n_answers', n=len(q['answers']))}")
+            item.setData(Qt.UserRole, q["path"])
+            self.q_list.addItem(item)
+            if q["path"] == keep_path:
+                self.q_list.setCurrentItem(item)
+        self.q_list.blockSignals(False)
+        if self.q_list.currentItem() is None and self.q_list.count():
+            self.q_list.setCurrentRow(0)
+        self._show_question()
+        self.q_count.setText(tr("q_count", shown=len(shown), total=len(self.questions)))
+        ready = bool(self.questions) or bool(self._knowledge_ready())
+        self.q_send.setEnabled(bool(shown) and ready)
+        if not self._knowledge_ready():
+            self.q_view.setMarkdown(tr("q_no_repo"))
+        elif not self.questions:
+            self.q_view.setMarkdown(tr("q_empty"))
+
+    def _knowledge_ready(self) -> bool:
+        from ..sync import knowledge_repo
+        return bool(knowledge_repo(self.cfg))
+
+    def _current_question(self):
+        item = self.q_list.currentItem()
+        if item is None:
+            return None
+        path = item.data(Qt.UserRole)
+        return next((q for q in self.questions if q["path"] == path), None)
+
+    def _show_question(self):
+        q = self._current_question()
+        if q is None:
+            self.q_view.clear()
+            return
+        st = tr("q_answered") if q["status"] == "answered" else tr("q_open")
+        md = [f"### {q['title']}", f"{q['area']} · **{st}**", ""]
+        if q["details"] and q["details"] != q["title"]:
+            md += [q["details"], ""]
+        if q["note"]:
+            md += [f"{tr('q_related')}: `{q['note']}`", ""]
+        md.append(f"#### {tr('q_answers')} ({len(q['answers'])})")
+        for a in q["answers"]:
+            md += ["", f"**{a['author']}** · {a['date']}", "", a["text"]]
+        if not q["answers"]:
+            md += ["", tr("q_no_answers")]
+        self.q_view.setMarkdown("\n".join(md))
+
+    def _send_answer(self):
+        q = self._current_question()
+        text = self.q_answer.toPlainText().strip()
+        if q is None or not text:
+            return
+        if not self.cfg.author:
+            warn(self, tr("error"), tr("q_need_name"))
+            self.tabs.setCurrentIndex(self.settings_index)
+            self.author.setFocus()
+            return
+        cfg, path = self.cfg, q["path"]
+
+        def job(progress, cancel):
+            store = Store(index_path())
+            try:
+                return questions.answer_question(cfg, store, path, text)
+            finally:
+                store.close()
+
+        def done(_):
+            self.q_answer.clear()
+            self._load_questions(path)
+            self.q_status.setText(tr("q_sent"))
+        self._run(job, done, busy=tr("q_sending"))
+
+    def _new_question(self):
+        if not self._knowledge_ready():
+            warn(self, tr("error"), tr("q_no_repo"))
+            return
+        dlg = QDialog(self)
+        dlg.setWindowTitle(tr("q_new"))
+        dlg.resize(560, 380)
+        form = QFormLayout()
+        title = QLineEdit()
+        area = QComboBox()
+        area.setEditable(True)
+        area.addItems(sorted({q["area"] for q in self.questions if q["area"]}) or [tr("q_default_area")])
+        details = QPlainTextEdit()
+        form.addRow(tr("q_question"), title)
+        form.addRow(tr("q_area"), area)
+        form.addRow(tr("q_details"), details)
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        localize(buttons)
+        buttons.accepted.connect(dlg.accept)
+        buttons.rejected.connect(dlg.reject)
+        lay = QVBoxLayout(dlg)
+        lay.addLayout(form)
+        lay.addWidget(buttons)
+        if dlg.exec() != QDialog.Accepted or not title.text().strip():
+            return
+        cfg = self.cfg
+        t, a, d = title.text().strip(), area.currentText().strip(), details.toPlainText().strip()
+
+        def job(progress, cancel):
+            store = Store(index_path())
+            try:
+                return questions.ask_question(cfg, store, t, a, d)
+            finally:
+                store.close()
+        self._run(job, lambda path: (self._load_questions(path), self.q_status.setText(tr("q_asked"))),
+                  busy=tr("q_sending"))
 
     def _teach_tab(self):
         page = QWidget()
@@ -685,6 +880,7 @@ class MainWindow(QMainWindow):
     def refresh(self):
         self._fill_sources()
         self._fill_notes()
+        self._load_questions()
         self._fill_claude()
         self._fill_status()
 
@@ -720,7 +916,8 @@ class MainWindow(QMainWindow):
         current = self.kn_list.currentItem().data(Qt.UserRole) if self.kn_list.currentItem() else None
         self.kn_list.clear()
         repo = knowledge_repo(self.cfg)
-        rows = [r for r in self.store.list_files(kind="knowledge", limit=2000)[0] if r["repo"] == repo] if repo else []
+        rows = [r for r in self.store.list_files(kind="knowledge", limit=5000)[0]
+                if r["repo"] == repo and not r["path"].startswith("questions/")] if repo else []
         for r in sorted(rows, key=lambda r: r["path"], reverse=True):
             text = self.store.read_file(r["repo"], r["path"]) or ""
             title = next((ln.lstrip("# ").strip() for ln in text.splitlines() if ln.strip()), r["path"])
