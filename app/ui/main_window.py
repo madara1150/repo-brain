@@ -15,11 +15,12 @@ from PySide6.QtWidgets import (QAbstractItemView, QApplication, QButtonGroup, QC
                                QTableWidgetItem, QTabWidget, QTextBrowser, QVBoxLayout, QWidget)
 
 from .. import claude_connect
-from ..config import (APP_NAME, TEAM_EXT, VERSION, Source, TeamFileError, apply_team, data_dir, export_team,
+from ..config import (APP_NAME, config_path, TEAM_EXT, VERSION, Source, TeamFileError, apply_team, data_dir, export_team,
                       index_path, load_config, read_team, save_config)
 from ..github import GitHub, parse_repo
 from ..i18n import language, set_language, tr
 from ..store import Store
+from .. import line_chat, teach
 from ..sync import Cancelled, Syncer, check_updates, knowledge_repo
 from . import styles
 
@@ -221,8 +222,9 @@ class MainWindow(QMainWindow):
         self.tabs = QTabWidget()
         self.tabs.addTab(self._sources_tab(), tr("tab_sources"))
         self.tabs.addTab(self._knowledge_tab(), tr("tab_knowledge"))
+        self.tabs.addTab(self._teach_tab(), tr("tab_teach"))
         self.tabs.addTab(self._claude_tab(), tr("tab_claude"))
-        self.tabs.addTab(self._settings_tab(), tr("tab_settings"))
+        self.settings_index = self.tabs.addTab(self._settings_tab(), tr("tab_settings"))
         root.addWidget(self.tabs, 1)
         root.addWidget(self._update_bar())
         self.setCentralWidget(central)
@@ -364,6 +366,161 @@ class MainWindow(QMainWindow):
         lay.addLayout(row)
         self._knowledge_visibility()
         return page
+
+    def _teach_tab(self):
+        page = QWidget()
+        lay = QVBoxLayout(page)
+        lay.setContentsMargins(0, 10, 0, 0)
+        self.cases = []
+        self.cases_done = self._load_done()
+
+        line_card = card(label(tr("te_line_title"), "sectionTitle"), label(tr("te_line_hint"), "hint"))
+        r1 = QHBoxLayout()
+        open_btn = QPushButton(tr("te_open"))
+        open_btn.clicked.connect(self._open_line_file)
+        paste_btn = QPushButton(tr("te_paste"))
+        paste_btn.clicked.connect(self._paste_chat)
+        r1.addWidget(open_btn)
+        r1.addWidget(paste_btn)
+        r1.addStretch(1)
+        line_card.layout().addLayout(r1)
+        line_card.layout().addWidget(label(tr("te_screens"), "hint", rich=True))
+
+        flow_card = card(label(tr("te_flow_title"), "sectionTitle"), label(tr("te_flow_hint"), "hint"))
+        r2 = QHBoxLayout()
+        self.flow_topic = QLineEdit()
+        self.flow_topic.setPlaceholderText(tr("te_flow_ph"))
+        flow_btn = QPushButton(tr("te_flow_copy"))
+        flow_btn.setObjectName("primary")
+        flow_btn.clicked.connect(self._copy_flow)
+        r2.addWidget(self.flow_topic, 1)
+        r2.addWidget(flow_btn)
+        flow_card.layout().addLayout(r2)
+        top = QHBoxLayout()
+        top.addWidget(line_card, 1)
+        top.addWidget(flow_card, 1)
+        lay.addLayout(top)
+
+        split = QSplitter()
+        self.case_list = QListWidget()
+        self.case_list.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.case_list.setWordWrap(True)
+        self.case_list.currentRowChanged.connect(self._show_case)
+        right = QWidget()
+        rl = QVBoxLayout(right)
+        rl.setContentsMargins(0, 0, 0, 0)
+        self.case_text = QPlainTextEdit()
+        self.case_text.setPlaceholderText(tr("te_empty"))
+        rl.addWidget(self.case_text, 1)
+        r3 = QHBoxLayout()
+        self.teach_status = label("", "hint")
+        r3.addWidget(self.teach_status, 1)
+        self.done_btn = QPushButton(tr("te_done"))
+        self.done_btn.clicked.connect(self._mark_done)
+        self.copy_case_btn = QPushButton(tr("te_copy_case"))
+        self.copy_case_btn.setObjectName("primary")
+        self.copy_case_btn.clicked.connect(self._copy_case)
+        r3.addWidget(self.done_btn)
+        r3.addWidget(self.copy_case_btn)
+        rl.addLayout(r3)
+        split.addWidget(self.case_list)
+        split.addWidget(right)
+        split.setSizes([330, 690])
+        lay.addWidget(split, 1)
+        self._fill_cases()
+        return page
+
+    # ---- teach actions
+    def _done_path(self):
+        return os.path.join(os.path.dirname(config_path()), "cases_done.json")
+
+    def _load_done(self) -> set:
+        import json
+        try:
+            with open(self._done_path(), encoding="utf-8") as fh:
+                return set(json.load(fh))
+        except (OSError, ValueError):
+            return set()
+
+    def _save_done(self):
+        import json
+        with open(self._done_path(), "w", encoding="utf-8") as fh:
+            json.dump(sorted(self.cases_done), fh)
+
+    def _load_chat(self, text: str):
+        self.cases = line_chat.split_cases(text)
+        self._fill_cases()
+        first_open = next((i for i, c in enumerate(self.cases) if c.key not in self.cases_done), 0)
+        if self.cases:
+            self.case_list.setCurrentRow(first_open)
+        self.teach_status.setText(tr("te_loaded", n=len(self.cases)))
+
+    def _fill_cases(self):
+        self.case_list.clear()
+        for c in self.cases:
+            mark = "✓ " if c.key in self.cases_done else ""
+            item = QListWidgetItem(f"{mark}{c.date or '—'} · {tr('te_msgs', n=len(c.messages))}\n{c.preview}")
+            if c.key in self.cases_done:
+                item.setForeground(_qcolor(styles.MUTED))
+            self.case_list.addItem(item)
+        has = bool(self.cases)
+        self.copy_case_btn.setEnabled(has)
+        self.done_btn.setEnabled(has)
+
+    def _show_case(self, row):
+        if 0 <= row < len(self.cases):
+            self.case_text.setPlainText(self.cases[row].text)
+
+    def _open_line_file(self):
+        path, _ = QFileDialog.getOpenFileName(self, tr("te_open"), os.path.expanduser("~"), "LINE chat (*.txt);;All (*)")
+        if not path:
+            return
+        with open(path, "rb") as fh:
+            raw = fh.read()
+        for enc in ("utf-8-sig", "utf-16", "cp874"):
+            try:
+                self._load_chat(raw.decode(enc))
+                return
+            except UnicodeDecodeError:
+                continue
+        self._load_chat(raw.decode("utf-8", "replace"))
+
+    def _paste_chat(self):
+        dlg = QDialog(self)
+        dlg.setWindowTitle(tr("te_paste"))
+        dlg.resize(620, 480)
+        lay = QVBoxLayout(dlg)
+        lay.addWidget(label(tr("te_paste_hint"), "hint"))
+        box = QPlainTextEdit()
+        box.setPlainText(QGuiApplication.clipboard().text())
+        lay.addWidget(box, 1)
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttons.accepted.connect(dlg.accept)
+        buttons.rejected.connect(dlg.reject)
+        lay.addWidget(buttons)
+        if dlg.exec() == QDialog.Accepted and box.toPlainText().strip():
+            self._load_chat(box.toPlainText())
+
+    def _copy_case(self):
+        text = self.case_text.toPlainText().strip()
+        if not text:
+            return
+        # anything typed or pasted into the editor gets the same redaction
+        QGuiApplication.clipboard().setText(teach.case_prompt(line_chat.redact(text, {})))
+        self.teach_status.setText(tr("te_copied"))
+
+    def _mark_done(self):
+        row = self.case_list.currentRow()
+        if 0 <= row < len(self.cases):
+            self.cases_done.add(self.cases[row].key)
+            self._save_done()
+            self._fill_cases()
+            nxt = next((i for i, c in enumerate(self.cases) if c.key not in self.cases_done), row)
+            self.case_list.setCurrentRow(nxt)
+
+    def _copy_flow(self):
+        QGuiApplication.clipboard().setText(teach.flow_prompt(self.flow_topic.text()))
+        self.teach_status.setText(tr("te_copied"))
 
     def _claude_tab(self):
         page = QWidget()
@@ -817,7 +974,7 @@ class MainWindow(QMainWindow):
         save_config(self.cfg)
         self.checks = {}
         self._build()
-        self.tabs.setCurrentIndex(3 if not self.cfg.author else 0)
+        self.tabs.setCurrentIndex(self.settings_index if not self.cfg.author else 0)
         msg = tr("team_imported")
         if not self.cfg.author:
             msg += "\n\n" + tr("team_need_name")

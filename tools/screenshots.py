@@ -72,10 +72,14 @@ def main():
         win.checks = {c.repo: c for c in checks}
         win.refresh()
         win.show()
-        for idx, name in ((0, "main"), (1, "knowledge"), (2, "claude"), (3, "settings")):
+        for idx, name in ((0, "main"), (1, "knowledge"), (2, "teach"), (3, "claude"), (4, "settings")):
             win.tabs.setCurrentIndex(idx)
             if idx == 1:
                 win.kn_list.setCurrentRow(1)
+            if idx == 2:
+                with open(os.path.join(ROOT, "tools", "demo_line_chat.txt"), encoding="utf-8") as fh:
+                    win._load_chat(fh.read())
+                win.flow_topic.setText("ขอซื้อ-จัดซื้อ" if lang == "th" else "Purchase request to PO")
             for _ in range(5):
                 app.processEvents()
             path = os.path.join(OUT, f"{name}-{lang}.png")

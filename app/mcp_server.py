@@ -12,6 +12,7 @@ import traceback
 
 from . import config as C
 from .store import Store
+from .teach import NOTE_TYPES, PROMPTS, get_prompt
 
 PROTOCOL_VERSIONS = ["2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05"]
 READ_LIMIT = 400
@@ -24,7 +25,8 @@ Odoo system together with its OCA dependencies) plus the team's shared knowledge
 dependencies, models), then read_file for details. Thai labels are searchable with search_code (th.po and views).
 - Team knowledge (business rules, conventions, how-tos written by the team) comes from search_knowledge; \
 prefer it for "how do we..." questions and mention when it disagrees with the code.
-- add_knowledge saves a note for the whole team: only call it when the user asks to remember/save something.
+- add_knowledge / update_knowledge save a note for the whole team: only after the user asked to record something AND confirmed the final draft. Never store personal data (names, phones, emails, ID/account numbers) - use roles.
+- When the user wants to teach you (a LINE chat case, screenshots, or a work flow), interview them a few questions at a time, check against the code, explain it back until they agree, show the draft, then save on confirmation (the analyze_line_case and teach_flow prompts describe this in detail).
 - The snapshot is only refreshed when a user presses Update in the Repo Brain app. If something seems \
 missing or outdated, say so and suggest pressing Update (check_for_updates tells whether GitHub has newer commits)."""
 
@@ -62,10 +64,22 @@ TOOLS = [
     _tool("search_knowledge", "Search the team's shared knowledge notes (business rules, conventions, how-tos).",
           {"query": S, "limit": I}, ["query"]),
     _tool("list_knowledge", "List all team knowledge notes (titles and paths)."),
-    _tool("add_knowledge", "Save a note to the team's shared knowledge so everyone's Repo Brain gets it after they "
-          "press Update. Only use when the user asks to remember or record something. Write it self-contained.",
-          {"title": S, "content": {**S, "description": "Markdown"},
+    _tool("add_knowledge", "Save a NEW note to the team's shared knowledge (pushed to the team's knowledge repository; "
+          "teammates get it after they press Update). Only call after the user has read the final draft in the chat "
+          "and explicitly confirmed it. Search existing notes first and prefer update_knowledge for the same topic. "
+          "Never include personal data (names, phone numbers, emails, ID/account numbers): use roles instead.",
+          {"title": {**S, "description": "the question or problem people would search for"},
+           "content": {**S, "description": "Markdown body following the template (without repeating the title)"},
+           "type": {"type": "string", "enum": NOTE_TYPES,
+                    "description": "case = solved Q&A/problem, flow = business process, rule = policy/condition, "
+                                   "howto = step-by-step task, faq = short answer"},
+           "modules": {"type": "array", "items": S, "description": "related Odoo modules"},
            "tags": {"type": "array", "items": S}}, ["title", "content"]),
+    _tool("update_knowledge", "Replace an existing team note (same rules as add_knowledge: only after the user confirmed "
+          "the full new version). Read it first with read_file; path as shown by list_knowledge.",
+          {"path": S, "content": {**S, "description": "full new Markdown body (without the title)"},
+           "title": {**S, "description": "new title; omit to keep"}, "type": {"type": "string", "enum": NOTE_TYPES},
+           "modules": {"type": "array", "items": S}, "tags": {"type": "array", "items": S}}, ["path", "content"]),
     _tool("check_for_updates", "Ask GitHub whether newer commits exist than the snapshot (reads no code). The "
           "snapshot itself is only updated with the Update button in the Repo Brain app."),
 ]
@@ -250,13 +264,27 @@ class Server:
         for r in rows:
             text = self.store.read_file(r["repo"], r["path"]) or ""
             title = next((ln.lstrip("# ").strip() for ln in text.splitlines() if ln.strip()), r["path"])
-            out.append(f"- {title}  ({r['repo']}/{r['path']})")
+            kind = next((ln[8:].strip() for ln in text.splitlines() if ln.startswith("- type: ")), "")
+            out.append(f"- {'[' + kind + '] ' if kind else ''}{title}  ({r['repo']}/{r['path']})")
         return "\n".join(out)
 
     def t_add_knowledge(self, a):
-        from .knowledge import add_entry
-        where = add_entry(C.load_config(), self.store, a["title"], a["content"], a.get("tags") or [])
+        from .knowledge import KnowledgeError, add_entry
+        try:
+            where = add_entry(C.load_config(), self.store, a["title"], a["content"], a.get("tags") or [],
+                              note_type=a.get("type", ""), modules=a.get("modules") or [])
+        except KnowledgeError as e:
+            raise ToolError(str(e)) from None
         return f"Saved for the team: {where}. Teammates get it after they press Update."
+
+    def t_update_knowledge(self, a):
+        from .knowledge import KnowledgeError, update_entry
+        try:
+            where = update_entry(C.load_config(), self.store, a["path"], a["content"], a.get("title", ""),
+                                 a.get("tags"), note_type=a.get("type", ""), modules=a.get("modules"))
+        except KnowledgeError as e:
+            raise ToolError(str(e)) from None
+        return f"Updated for the team: {where}. Teammates get it after they press Update."
 
     def t_check_for_updates(self, a):
         from .sync import check_updates
@@ -285,7 +313,8 @@ class Server:
             if method == "initialize":
                 asked = params.get("protocolVersion")
                 version = asked if asked in PROTOCOL_VERSIONS else PROTOCOL_VERSIONS[0]
-                result = {"protocolVersion": version, "capabilities": {"tools": {"listChanged": False}},
+                result = {"protocolVersion": version, "capabilities": {"tools": {"listChanged": False},
+                                                                     "prompts": {"listChanged": False}},
                           "serverInfo": {"name": C.MCP_NAME, "title": C.APP_NAME, "version": C.VERSION},
                           "instructions": INSTRUCTIONS}
             elif method == "ping":
@@ -294,8 +323,16 @@ class Server:
                 result = {"tools": TOOLS}
             elif method == "tools/call":
                 result = self.call_tool(params.get("name", ""), params.get("arguments") or {})
-            elif method in ("resources/list", "prompts/list"):
-                result = {method.split("/")[0]: []}
+            elif method == "prompts/list":
+                result = {"prompts": PROMPTS}
+            elif method == "prompts/get":
+                try:
+                    result = get_prompt(params.get("name", ""), params.get("arguments") or {})
+                except KeyError:
+                    return {"jsonrpc": "2.0", "id": mid,
+                            "error": {"code": -32602, "message": f"Unknown prompt {params.get('name')}"}}
+            elif method == "resources/list":
+                result = {"resources": []}
             else:
                 return {"jsonrpc": "2.0", "id": mid, "error": {"code": -32601, "message": f"Unknown method {method}"}}
         except Exception as e:  # protocol-level failure

@@ -45,6 +45,8 @@
 | 🔗 **หา repo ของ OCA ที่ขาดให้** | อ่าน `depends` แล้วบอกว่าโมดูลที่ขาดอยู่ใน repo ไหนของ OCA ตรงตามเวอร์ชัน Odoo แล้วเพิ่มได้ในคลิกเดียว |
 | 📦 **ตั้งค่าทั้งทีมด้วยไฟล์เดียว** | คนเดียวตั้งค่าแล้วส่งออก คนอื่นนำเข้าไฟล์ `.repobrain` ก็ได้ repo, ข้อมูลทีม และ token ครบ |
 | 👥 **ข้อมูลทีมที่แชร์กัน** | ทุกคนเพิ่มบันทึกได้ เช่น กฎธุรกิจ ขั้นตอนงาน ข้อตกลงของทีม เก็บใน GitHub repo แบบ private หรือโฟลเดอร์แชร์ แล้วทุกคนได้ข้อมูลเมื่อกดอัปเดต |
+| 🎓 **สอน Claude จากเคสจริง** | เปิดไฟล์ export แชท LINE แล้วแอปแยกเป็นเคส ปิดชื่อ เบอร์ อีเมล ให้ Claude วิเคราะห์ ถามจนเข้าใจ เทียบกับโค้ดจริง แล้วบันทึกหลังคุณยืนยัน |
+| 🗺️ **สอน flow การทำงาน** | Claude สัมภาษณ์ทีละขั้นจนอธิบาย flow กลับได้ถูก แล้วเขียนเป็นคู่มือให้ทั้งทีม |
 | 💬 **บอก Claude ให้จำ** | พิมพ์ใน Claude ว่า “จำไว้ให้ทีมว่า …” แล้วบันทึกจะถูกแชร์ให้ทั้งทีม |
 | 🔑 **ใช้ Claude ของแต่ละคน** | ทำงานเป็น MCP server ของ Claude Desktop จึงใช้บัญชีและโควตาของแต่ละคนเอง ไม่ต้องมี API key กลาง |
 | 🔒 **ข้อมูลอยู่ในเครื่อง** | index เก็บในเครื่องคุณ ไม่มี server กลาง ข้ามไฟล์ `.env`, key และไฟล์ binary ให้อัตโนมัติ |
@@ -62,7 +64,7 @@ GitHub (โค้ด + ข้อมูลทีม) ──กด “อัปเ
                                         Claude Desktop ของคุณ ◀── คุณถาม
 ```
 
-Claude ใช้เครื่องมือเหล่านี้ได้: `repo_status`, `search_code`, `read_file`, `list_files`, `list_modules`, `odoo_module`, `odoo_model`, `search_knowledge`, `list_knowledge`, `add_knowledge`, `check_for_updates`
+Claude ใช้เครื่องมือเหล่านี้ได้: `repo_status`, `search_code`, `read_file`, `list_files`, `list_modules`, `odoo_module`, `odoo_model`, `search_knowledge`, `list_knowledge`, `add_knowledge`, `update_knowledge`, `check_for_updates` และมีคำสั่งสำเร็จรูป (prompt) `analyze_line_case`, `teach_flow`
 
 ---
 
@@ -95,7 +97,16 @@ Claude ใช้เครื่องมือเหล่านี้ได้:
    - **โฟลเดอร์แชร์**: ทุกคนเลือกโฟลเดอร์เดียวกันที่ sync ด้วย Google Drive / OneDrive / NAS
 6. **แจกการตั้งค่าให้ทีม** (คนตั้งค่าทำครั้งเดียว): **ตั้งค่า** → **ส่งออกการตั้งค่าทีม…** จะได้ไฟล์ `.repobrain` ที่มีรายการ repo, ที่เก็บข้อมูลทีม, เวอร์ชัน Odoo และ token (เลือกได้ว่าจะใส่ token ไหม) ส่งไฟล์ให้ทีม**ทางแชทส่วนตัวเท่านั้น** ชื่อผู้บันทึกและภาษาของแต่ละคนจะไม่ถูกเปลี่ยน
    - ถ้าใส่ token ในไฟล์ ให้ใช้ [fine-grained token](https://github.com/settings/personal-access-tokens/new) ของเจ้าของ repo ที่จำกัดเฉพาะ repo ข้อมูลทีม สิทธิ์ *Contents: Read and write* และตั้งวันหมดอายุ ทุกบันทึกจะ commit ในชื่อเจ้าของ token แต่ในบันทึกยังมีชื่อผู้บันทึกจริง
-7. **ถามได้เลย** ใน Claude Desktop เช่น
+7. **สอน Claude** (แท็บ **สอน Claude**)
+
+   <img src="docs/screenshots/teach-th.png" width="760" alt="แท็บสอน Claude: เคสจาก LINE และสอน flow">
+
+   - **เคสจาก LINE**: ใน LINE เปิดแชท → ตั้งค่า → **ส่งออกประวัติการแชท** แล้วกด **เปิดไฟล์ LINE (.txt)…** (หรือ **วางข้อความแชท…**) เลือกเคสทางซ้าย ตัดส่วนที่ไม่เกี่ยวออก กด **คัดลอกให้ Claude วิเคราะห์** แล้ววางในแชทใหม่ของ Claude Desktop เสร็จแล้วกด **ทำเสร็จแล้ว ✓** แอปจะจำไว้ว่าเคสไหนทำไปแล้ว
+   - **ภาพหน้าจอแชท**: ใน Claude Desktop กด **+** → **repo-brain** → **วิเคราะห์เคสจาก LINE** แล้วแนบรูป
+   - **สอน flow**: พิมพ์ชื่อ flow เช่น "ขอซื้อ-จัดซื้อ" กด **คัดลอกคำสั่งไปวางใน Claude** (หรือ **+** → **repo-brain** → **สอน flow การทำงาน**)
+   - Claude จะดูโค้ดและบันทึกเดิมก่อน ถามทีละ 1–3 ข้อ สรุปกลับให้คุณแก้ แสดงร่างทั้งฉบับ และจะบันทึกขึ้นคลังความรู้ **หลังคุณตอบยืนยันเท่านั้น** ถ้ามีบันทึกเรื่องเดียวกันอยู่แล้ว จะเสนอแก้บันทึกเดิมแทน
+   - ข้อความที่ส่งให้ Claude ถูกปิดชื่อ เบอร์โทร อีเมล เลขบัตร เลขบัญชี ไว้แล้ว และบันทึกจะเขียนเป็นบทบาท (เช่น "เจ้าหน้าที่พัสดุ") ไม่มีชื่อคน แต่ควรอ่านทวนก่อนส่งทุกครั้ง
+8. **ถามได้เลย** ใน Claude Desktop เช่น
    - “model `purchase.request` ถูก inherit ที่โมดูลไหนบ้าง”
    - “field ‘ผู้ขอซื้อ’ อยู่ใน model ไหน”
    - “ใบขอซื้อของเราต้องอนุมัติกี่ขั้น (ดูข้อมูลทีมด้วย)”
@@ -172,6 +183,8 @@ push tag `v1.0.0` แล้ว GitHub Actions จะ build ทั้งสอง
 | 🔗 **Finds missing OCA repos** | Reads `depends` and tells you which OCA repository ships each missing module for your Odoo version, then adds them in one click. |
 | 📦 **One file sets up the team** | One person exports the setup; everyone else imports the `.repobrain` file and gets the repositories, team knowledge and token. |
 | 👥 **Shared team knowledge** | Everyone can add notes — business rules, procedures, conventions — stored in a private GitHub repository or a shared folder; everyone gets them on Update. |
+| 🎓 **Teach Claude from real cases** | Open a LINE chat export; the app splits it into cases and hides names, phone numbers and emails. Claude analyzes, asks until it understands, checks the code, and saves after you confirm. |
+| 🗺️ **Teach a work flow** | Claude interviews you step by step until it can explain the flow back correctly, then writes it up for the team. |
 | 💬 **Ask Claude to remember** | Say “remember for the team that …” in Claude and the note is shared with the whole team. |
 | 🔑 **Each person's own Claude** | Runs as a Claude Desktop MCP server, so it uses each person's own account and quota — no shared API key. |
 | 🔒 **Data stays local** | The index lives on your computer, no central server. `.env` files, keys and binaries are skipped automatically. |
@@ -189,7 +202,7 @@ GitHub (code + team notes) ──press “Update”──▶ Repo Brain (local i
                                         your Claude Desktop ◀── you ask
 ```
 
-Tools Claude can use: `repo_status`, `search_code`, `read_file`, `list_files`, `list_modules`, `odoo_module`, `odoo_model`, `search_knowledge`, `list_knowledge`, `add_knowledge`, `check_for_updates`
+Tools Claude can use: `repo_status`, `search_code`, `read_file`, `list_files`, `list_modules`, `odoo_module`, `odoo_model`, `search_knowledge`, `list_knowledge`, `add_knowledge`, `update_knowledge`, `check_for_updates`, plus the prompts `analyze_line_case` and `teach_flow`
 
 ---
 
@@ -222,7 +235,16 @@ You also need [Claude Desktop](https://claude.ai/download).
    - **Shared folder**: everyone picks the same folder synced with Google Drive / OneDrive / a NAS.
 6. **Share the setup with the team** (done once by whoever set it up): **Settings** → **Export team settings…** saves a `.repobrain` file with the repositories, team knowledge location, Odoo version and, if you choose, the token. Send it to the team **privately only**. Each person's name and language are left unchanged.
    - If the file includes a token, use the repository owner's [fine-grained token](https://github.com/settings/personal-access-tokens/new) limited to the knowledge repository with *Contents: Read and write* and an expiry date. Notes are committed under the token owner's account, but each note still records who wrote it.
-7. **Ask away** in Claude Desktop, for example
+7. **Teach Claude** (the **Teach Claude** tab)
+
+   <img src="docs/screenshots/teach-en.png" width="760" alt="Teach Claude tab: LINE cases and work flows">
+
+   - **LINE cases**: in LINE open the chat → settings → **Export chat history**, then press **Open LINE export (.txt)…** (or **Paste chat text…**). Pick a case on the left, trim anything unrelated, press **Copy for Claude to analyze** and paste it into a new Claude Desktop chat. Press **Mark done ✓** afterwards; the app remembers which cases are done.
+   - **Chat screenshots**: in Claude Desktop press **+** → **repo-brain** → **วิเคราะห์เคสจาก LINE** and attach them.
+   - **Work flows**: type the flow's name, press **Copy prompt for Claude** (or **+** → **repo-brain** → **สอน flow การทำงาน**).
+   - Claude reads the code and existing notes first, asks 1–3 questions at a time, explains back for you to correct, shows the full draft, and saves to the knowledge repository **only after you confirm**. If a note on the same topic exists, it proposes updating it instead.
+   - Text sent to Claude has names, phone numbers, emails, ID and account numbers hidden, and notes describe roles (e.g. "procurement officer") rather than people — still, read it before sending.
+8. **Ask away** in Claude Desktop, for example
    - “Which modules inherit `purchase.request`?”
    - “Which model has the ‘Requested by’ field?”
    - “How many approval steps does our purchase request need? (check team notes too)”

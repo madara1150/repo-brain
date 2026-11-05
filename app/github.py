@@ -118,10 +118,16 @@ class GitHub:
         return self._json("/user").get("login", "")
 
     # ---- writing ----
-    def put_file(self, repo: str, branch: str, path: str, content: bytes, message: str) -> dict:
+    def file_sha(self, repo: str, branch: str, path: str) -> str:
+        ref = f"?ref={urllib.parse.quote(branch)}" if branch else ""
+        return self._json(f"/repos/{repo}/contents/{urllib.parse.quote(path)}{ref}").get("sha", "")
+
+    def put_file(self, repo: str, branch: str, path: str, content: bytes, message: str, sha: str = "") -> dict:
         if not self.token:
             raise GitHubError("A GitHub token is needed to add shared knowledge")
         payload = {"message": message, "content": base64.b64encode(content).decode()}
         if branch:
             payload["branch"] = branch
+        if sha:
+            payload["sha"] = sha  # required when replacing an existing file
         return self._json(f"/repos/{repo}/contents/{urllib.parse.quote(path)}", "PUT", payload)

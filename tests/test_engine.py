@@ -356,3 +356,96 @@ def test_team_settings_roundtrip(tmp_path):
     (tmp_path / "x.json").write_text('{"sources": []}')
     with pytest.raises(TeamFileError):
         read_team(str(tmp_path / "x.json"))
+
+
+# ---------------------------------------------------------------- LINE cases / teaching
+DEMO_CHAT = os.path.join(ROOT, "tools", "demo_line_chat.txt")
+
+
+def test_line_export_split_and_redacted():
+    from app.line_chat import split_cases
+    with open(DEMO_CHAT, encoding="utf-8") as fh:
+        cases = split_cases(fh.read())
+    # 3 cases: morning thread, afternoon thread (>3h gap), next day
+    assert [c.date for c in cases] == ["2026/11/03", "2026/11/03", "2026/11/04"]
+    first = cases[0].text
+    assert "สมชาย" not in first and "แอดมิน" not in first
+    assert "คน A" in first and "คน B" in first
+    assert "02-123-4567" not in first and "[เบอร์โทร]" in first
+    assert "finance@example.com" not in first and "[อีเมล]" in first
+    assert "dropdown ไม่มีให้เลือก" in first  # multi-line message kept
+    assert "081-234-5678" not in cases[2].text
+    assert len(cases[0].messages) == 5 and cases[0].key != cases[1].key
+
+
+def test_pasted_text_becomes_one_case():
+    from app.line_chat import split_cases
+    cases = split_cases("ลูกค้าถามว่า reset รหัสผ่านยังไง โทร 0812345678 หรือ id 1-2345-67890-12-3")
+    assert len(cases) == 1
+    assert "0812345678" not in cases[0].text and "[เลขบัตรประชาชน]" in cases[0].text
+    assert split_cases("   ") == []
+
+
+def test_prompts_and_typed_notes(tmp_path):
+    from app.config import Config, Knowledge, save_config
+    from app.mcp_server import Server
+    from app.teach import case_prompt, flow_prompt
+    assert "add_knowledge" in case_prompt("คน A: hi") and "คน A: hi" in case_prompt("คน A: hi")
+    assert "โอนงบ" in flow_prompt("โอนงบ") and "อธิบายกลับ" in flow_prompt()
+
+    folder = tmp_path / "notes"
+    folder.mkdir()
+    save_config(Config(knowledge=Knowledge(mode="folder", folder=str(folder), subdir="knowledge"), author="Boat"))
+    make_store().close()
+    s = Server()
+    init = _rpc(s, "initialize")["result"]
+    assert "prompts" in init["capabilities"]
+    names = [p["name"] for p in _rpc(s, "prompts/list")["result"]["prompts"]]
+    assert names == ["analyze_line_case", "teach_flow"]
+    got = _rpc(s, "prompts/get", {"name": "teach_flow", "arguments": {"topic": "เบิกจ่าย"}})["result"]
+    assert "เบิกจ่าย" in got["messages"][0]["content"]["text"]
+    assert "error" in _rpc(s, "prompts/get", {"name": "nope"})
+
+    text, err = _call(s, "add_knowledge", title="ยืนยันใบขอซื้อไม่ได้", content="# ยืนยันใบขอซื้อไม่ได้\n## สรุป\nต้องมีงบ",
+                      type="case", modules=["purchase_request"], tags=["งบ"])
+    assert not err, text
+    path = next(folder.rglob("*.md"))
+    saved = path.read_text(encoding="utf-8")
+    assert "- type: case" in saved and "- modules: purchase_request" in saved and "- author: Boat" in saved
+    assert saved.count("ยืนยันใบขอซื้อไม่ได้") == 1  # repeated title removed from the body
+    listing, _ = _call(s, "list_knowledge")
+    assert "[case] ยืนยันใบขอซื้อไม่ได้" in listing
+
+    rel = path.relative_to(folder).as_posix()
+    text, err = _call(s, "update_knowledge", path=f"local/knowledge/{rel}", content="## สรุป\nต้องได้รับจัดสรรงบก่อน")
+    assert not err, text
+    saved = path.read_text(encoding="utf-8")
+    assert "ต้องได้รับจัดสรรงบก่อน" in saved and "- type: case" in saved and "- modules: purchase_request" in saved
+    text, err = _call(s, "update_knowledge", path="knowledge/missing.md", content="x")
+    assert err and "list_knowledge" in text
+
+
+def test_update_on_github_sends_sha():
+    from app.config import Config, Knowledge
+    from app.knowledge import add_entry, update_entry
+    store = make_store()
+
+    class GH(FakeGitHub):
+        def file_sha(self, repo, branch, path):
+            return "abc123"
+
+        def put_file(self, repo, branch, path, content, message, sha=""):
+            self.put.append((path, sha, message))
+            return {}
+    gh = GH({}, "")
+    cfg = Config(knowledge=Knowledge(mode="github", repo="me/notes", subdir="knowledge"), github_token="t", author="A")
+    add_entry(cfg, store, "Title", "body", gh=gh)
+    path = gh.put[0][0]
+    update_entry(cfg, store, f"me/notes/{path}", "new body", gh=gh)
+    assert gh.put[1] == (path, "abc123", "Update knowledge: Title")
+
+
+def test_case_preview_is_redacted():
+    from app.line_chat import split_cases
+    case = split_cases("2026/11/01(Sat)\n10:00\tสมศรี\tโทรหา 0812345678 ด่วน\n")[0]
+    assert "0812345678" not in case.preview and "[เบอร์โทร]" in case.preview and "สมศรี" not in case.preview

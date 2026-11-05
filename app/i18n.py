@@ -6,6 +6,7 @@ T = {
     "subtitle": ("ให้ Claude รู้จักโค้ดและข้อมูลของทีมคุณ", "Let Claude know your team's code and knowledge"),
     "tab_sources": ("โค้ดจาก GitHub", "GitHub code"),
     "tab_knowledge": ("ข้อมูลทีม", "Team knowledge"),
+    "tab_teach": ("สอน Claude", "Teach Claude"),
     "tab_claude": ("เชื่อมกับ Claude", "Connect Claude"),
     "tab_settings": ("ตั้งค่า", "Settings"),
     # update bar
@@ -139,6 +140,31 @@ T = {
                    "ส่วนที่ Claude อ่านจะส่งผ่าน Claude Desktop ของคุณเอง",
                    "Everything is stored on this computer. The app only contacts GitHub (update / check / add note) and PyPI "
                    "(dependency lookup). What Claude reads goes through your own Claude Desktop."),
+    # teach tab
+    "te_line_title": ("เคสถาม-ตอบจาก LINE", "Q&A cases from LINE"),
+    "te_line_hint": ("เปิดไฟล์ที่ export จาก LINE (แชท → ตั้งค่า → ส่งออกประวัติการแชท) หรือวางข้อความ "
+                     "แอปจะแยกเป็นเคสและปิดชื่อ เบอร์โทร อีเมล เลขบัตร ให้ก่อน",
+                     "Open a chat exported from LINE (chat → settings → Export chat history) or paste text. "
+                     "The app splits it into cases and hides names, phone numbers, emails and ID numbers first."),
+    "te_open": ("เปิดไฟล์ LINE (.txt)…", "Open LINE export (.txt)…"),
+    "te_paste": ("วางข้อความแชท…", "Paste chat text…"),
+    "te_paste_hint": ("วางข้อความจาก LINE (ข้อความในคลิปบอร์ดถูกใส่ไว้ให้แล้ว)", "Paste text from LINE (the clipboard is already filled in)"),
+    "te_screens": ("มีแค่ภาพหน้าจอ? ใน Claude Desktop กด <b>+</b> → <b>repo-brain</b> → <b>วิเคราะห์เคสจาก LINE</b> แล้วแนบรูป",
+                   "Only screenshots? In Claude Desktop press <b>+</b> → <b>repo-brain</b> → <b>วิเคราะห์เคสจาก LINE</b> and attach them"),
+    "te_flow_title": ("สอน flow การทำงาน", "Teach a work flow"),
+    "te_flow_hint": ("Claude จะดูโค้ดก่อน แล้วถามคุณทีละขั้นจนอธิบาย flow กลับได้ถูก จากนั้นให้คุณอ่านร่างก่อนบันทึก",
+                     "Claude reads the code first, then asks you step by step until it can explain the flow back "
+                     "correctly, and shows you the draft before saving."),
+    "te_flow_ph": ("เช่น ขอซื้อ-จัดซื้อ, เบิกจ่าย, โอนงบ", "e.g. purchase request to PO, disbursement"),
+    "te_flow_copy": ("คัดลอกคำสั่งไปวางใน Claude", "Copy prompt for Claude"),
+    "te_empty": ("เปิดไฟล์หรือวางแชท แล้วเลือกเคสทางซ้าย แก้หรือตัดข้อความที่ไม่เกี่ยวได้ก่อนส่ง",
+                 "Open or paste a chat, pick a case on the left, and trim anything unrelated before sending."),
+    "te_msgs": ("{n} ข้อความ", "{n} messages"),
+    "te_loaded": ("พบ {n} เคส", "{n} cases found"),
+    "te_copy_case": ("คัดลอกให้ Claude วิเคราะห์", "Copy for Claude to analyze"),
+    "te_done": ("ทำเสร็จแล้ว ✓", "Mark done ✓"),
+    "te_copied": ("คัดลอกแล้ว — เปิดแชทใหม่ใน Claude Desktop แล้ววาง (⌘V / Ctrl+V)",
+                  "Copied — start a new chat in Claude Desktop and paste (⌘V / Ctrl+V)"),
     # team settings file
     "team_title": ("การตั้งค่าทีม", "Team settings"),
     "team_hint": ("คนเดียวตั้งค่าแล้วส่งออกเป็นไฟล์ คนอื่นกดนำเข้าก็ได้รายการ repo, ที่เก็บข้อมูลทีม, เวอร์ชัน Odoo และ token ครบ "
