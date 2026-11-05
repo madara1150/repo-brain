@@ -449,10 +449,14 @@ class MainWindow(QMainWindow):
         rm.clicked.connect(self._remove_repo)
         deps = QPushButton(tr("find_deps"))
         deps.clicked.connect(self._find_deps)
+        self.team_save = QPushButton(tr("team_list_save"))
+        self.team_save.setToolTip(tr("team_list_tip"))
+        self.team_save.clicked.connect(self._save_team_list)
         row.addWidget(add)
         row.addWidget(rm)
         row.addStretch(1)
         row.addWidget(deps)
+        row.addWidget(self.team_save)
         lay.addLayout(row)
         return page
 
@@ -1025,7 +1029,7 @@ class MainWindow(QMainWindow):
                 state, color = "✓ " + tr("state_ok"), styles.OK
             else:
                 state, color = tr("state_unknown"), styles.MUTED
-            cells = [s.repo, st.get("branch") or s.branch or tr("default_branch"), (st.get("sha") or "")[:7] or "—",
+            cells = [("👥  " if s.team else "") + s.repo, st.get("branch") or s.branch or tr("default_branch"), (st.get("sha") or "")[:7] or "—",
                      local_time(st.get("synced_at")), str(st.get("file_count") or "—"), state]
             r = self.table.rowCount()
             self.table.insertRow(r)
@@ -1034,7 +1038,7 @@ class MainWindow(QMainWindow):
                 if c == 5:
                     item.setForeground(Qt.GlobalColor.black if color == styles.TEXT else _qcolor(color))
                 if c == 0:
-                    item.setToolTip(f"https://github.com/{s.repo}")
+                    item.setToolTip(f"https://github.com/{s.repo}" + ("\n" + tr("team_list_row") if s.team else ""))
                 self.table.setItem(r, c, item)
             self.table.setRowHeight(r, 36)
 
@@ -1101,6 +1105,9 @@ class MainWindow(QMainWindow):
         if r < 0 or r >= len(self.cfg.sources):
             return
         repo = self.cfg.sources[r].repo
+        if self.cfg.sources[r].team:
+            info(self, APP_NAME, tr("team_list_locked", repo=repo))
+            return
         if ask(self, APP_NAME, tr("confirm_remove", repo=repo)) != QMessageBox.Yes:
             return
         del self.cfg.sources[r]
@@ -1127,6 +1134,24 @@ class MainWindow(QMainWindow):
             save_config(self.cfg)
             self._fill_sources()
 
+    def _save_team_list(self):
+        from .. import team_repos
+        if not knowledge_repo(self.cfg):
+            warn(self, APP_NAME, tr("team_list_no_place"))
+            return
+        if not self.cfg.sources:
+            warn(self, APP_NAME, tr("team_list_empty"))
+            return
+        if ask(self, APP_NAME, tr("team_list_confirm", n=len(self.cfg.sources))) != QMessageBox.Yes:
+            return
+        cfg = self.cfg
+
+        def done(where):
+            save_config(self.cfg)
+            self._fill_sources()
+            info(self, APP_NAME, tr("team_list_saved", n=len(self.cfg.sources), where=where))
+        self._run(lambda progress, cancel: team_repos.publish(cfg), done, busy=tr("team_list_saving"))
+
     # ---- update / check
     def _update_clicked(self):
         if self.worker and self.worker.isRunning():
@@ -1137,13 +1162,20 @@ class MainWindow(QMainWindow):
         def job(progress, cancel):
             store = Store(index_path())
             try:
-                return Syncer(cfg, store, progress=progress, cancel=cancel).run()
+                syncer = Syncer(cfg, store, progress=progress, cancel=cancel)
+                return syncer.run(), syncer.team_changed, syncer.team_error
             finally:
                 store.close()
-        self._run(job, self._update_done, busy=tr("updating", msg=""), cancellable=True)
+        self._run(job, lambda res: self._update_done(*res), busy=tr("updating", msg=""), cancellable=True)
 
-    def _update_done(self, results):
+    def _update_done(self, results, team_changed=False, team_error=""):
         parts, failed = [], False
+        if team_changed:
+            save_config(self.cfg)
+            parts.append(tr("team_list_applied"))
+        if team_error:
+            failed = True
+            parts.append(tr("team_list_error", err=team_error))
         for r in results:
             name = r.repo.split("/")[-1]
             if r.mode == "error":

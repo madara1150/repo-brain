@@ -30,8 +30,10 @@ T = {
     "mode_folder": ("{n} บันทึก", "{n} notes"),
     "mode_error": ("ผิดพลาด", "error"),
     # sources
-    "sources_hint": ("repo ที่จะให้ Claude อ่าน ข้อมูลจะอัปเดตเมื่อกดปุ่มเท่านั้น ระหว่างนั้นใช้ข้อมูลเดิม",
-                     "Repositories Claude can read. Data changes only when you press Update; until then the last snapshot is used."),
+    "sources_hint": ("repo ที่จะให้ Claude อ่าน ข้อมูลจะอัปเดตเมื่อกดปุ่มเท่านั้น ระหว่างนั้นใช้ข้อมูลเดิม · "
+                     "👥 = มาจากรายการของทีม ได้มาเองตอนกดอัปเดต",
+                     "Repositories Claude can read. Data changes only when you press Update; until then the last snapshot is used. "
+                     "👥 = from the team list, added for you on Update."),
     "col_repo": ("Repository", "Repository"),
     "col_branch": ("Branch", "Branch"),
     "col_commit": ("Commit", "Commit"),
@@ -41,6 +43,26 @@ T = {
     "add_repo": ("เพิ่ม repo", "Add repository"),
     "remove_repo": ("ลบ", "Remove"),
     "find_deps": ("หา repo ที่โมดูลต้องใช้ (Odoo)", "Find dependency repos (Odoo)"),
+    "team_list_save": ("👥 บันทึกเป็นรายการของทีม", "👥 Save as the team list"),
+    "team_list_tip": ("บันทึกรายการ repo นี้ไว้ในที่เก็บข้อมูลทีม (repos.txt) ทุกคนในทีมจะได้ repo ครบเองเมื่อกดอัปเดต",
+                      "Save these repositories to the shared knowledge location (repos.txt); everyone gets them on Update"),
+    "team_list_row": ("👥 มาจากรายการของทีม (repos.txt) อัปเดตให้อัตโนมัติ",
+                      "👥 From the team list (repos.txt), kept up to date automatically"),
+    "team_list_locked": ("{repo} มาจากรายการของทีม ถ้าลบตรงนี้ จะกลับมาอีกตอนกดอัปเดต\n\n"
+                         "ถ้าต้องการเอาออกจริง ให้คนดูแลลบออกจากรายการ แล้วกด \"บันทึกเป็นรายการของทีม\" ใหม่",
+                         "{repo} comes from the team list and would come back on the next Update.\n\n"
+                         "To drop it for everyone, remove it from the list and press \"Save as the team list\" again."),
+    "team_list_no_place": ("ยังไม่ได้ตั้งที่เก็บข้อมูลทีม ไปตั้งที่แท็บ \"ข้อมูลทีม\" ก่อน",
+                           "Set a shared knowledge location in the Team knowledge tab first"),
+    "team_list_empty": ("ยังไม่มี repo ในรายการ", "There are no repositories to save"),
+    "team_list_confirm": ("บันทึก {n} repo นี้เป็นรายการของทีม?\n\n"
+                          "ทุกคนที่ใช้ข้อมูลทีมเดียวกันจะได้ repo ชุดนี้เองเมื่อกดอัปเดต ไม่ต้องเพิ่มทีละตัว",
+                          "Save these {n} repositories as the team list?\n\n"
+                          "Everyone using the same team knowledge gets them on Update, no typing needed."),
+    "team_list_saving": ("กำลังบันทึกรายการของทีม…", "Saving the team list…"),
+    "team_list_saved": ("บันทึกรายการของทีมแล้ว ({n} repo)\n{where}", "Team list saved ({n} repositories)\n{where}"),
+    "team_list_applied": ("รายการ repo อัปเดตตามรายการของทีม", "repositories updated from the team list"),
+    "team_list_error": ("อ่านรายการของทีมไม่ได้: {err}", "could not read the team list: {err}"),
     "state_new": ("ยังไม่เคยอัปเดต", "never updated"),
     "state_ok": ("ล่าสุด", "up to date"),
     "state_behind": ("มี commit ใหม่", "new commits"),

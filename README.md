@@ -120,7 +120,7 @@ If your admin sent you a `.repobrain` file, five steps are enough:
    <img src="docs/screenshots/guide/08-import-summary-en.png" width="400" alt="Summary of the settings to import">
 
 3. Fill in **Your name** (shown on notes you add).
-4. Press **Update** in the bar at the bottom and wait for it to finish.
+4. Press **Update** in the bar at the bottom and wait for it to finish. If the team has a [team repository list](#61-save-the-repositories-as-the-team-list-recommended), the repositories are added for you in this step.
 5. Do [step 7: Connect Claude Desktop](#7-connect-claude-desktop), then start [asking questions](#-everyday-use-ask-questions-in-claude-desktop).
 
 ---
@@ -187,6 +187,23 @@ We recommend one **shared token** created by the admin and handed out through th
 <img src="docs/screenshots/guide/07-export-token-en.png" width="400" alt="Include the token in the file?">
 
 Send the file **privately only** (it contains the token). Your name and language are not included.
+
+### 6.1 Save the repositories as the team list (recommended)
+
+Everyone gets the same repositories without typing them, and when the admin adds or drops one, every copy follows on the next Update.
+
+1. **GitHub code** tab → add all repositories (steps 1–3)
+2. Press **👥 Save as the team list** → **Yes**
+
+   <img src="docs/screenshots/guide/14-team-list-confirm-en.png" width="400" alt="Confirm saving the repositories as the team list">
+
+3. The app writes `repos.txt` to the team knowledge location (step 4). The next time anyone presses **Update**, missing repositories are added for them.
+
+<img src="docs/screenshots/guide/13-team-list-en.png" width="760" alt="Repositories from the team list are marked with 👥">
+
+- Repositories marked 👥 come from the team list and can't be removed on one computer; the admin removes them and saves the list again
+- Repositories you added yourself stay as they are
+- You can also edit `repos.txt` by hand: one repository per line, e.g. `OCA/web 16.0` (lines starting with `#` are comments)
 
 ### 7. Connect Claude Desktop
 

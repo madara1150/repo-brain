@@ -180,6 +180,23 @@ def main():
         save(win, "12-update-banner", lang)
         win._dismiss_update()
 
+        # 7c. repositories that come from the team list (repos.txt), and saving that list
+        saved = [(src.repo, src.team) for src in win.cfg.sources]
+        for src in win.cfg.sources:
+            src.team = True
+        win._fill_sources()
+        win.tabs.setCurrentIndex(0)
+        pump(app)
+        save(win, "13-team-list", lang)
+        box = message(win, QMessageBox.Question, "Repo Brain", tr("team_list_confirm", n=len(win.cfg.sources)),
+                      QMessageBox.Yes | QMessageBox.No)
+        pump(app)
+        save(box, "14-team-list-confirm", lang)
+        box.close()
+        for src, (_, team) in zip(win.cfg.sources, saved):
+            src.team = team
+        win._fill_sources()
+
         # 8. teach: LINE case loaded and copied
         win.tabs.setCurrentIndex(3)
         with open(os.path.join(ROOT, "tools", "demo_line_chat.txt"), encoding="utf-8") as fh:

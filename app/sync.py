@@ -7,7 +7,7 @@ import threading
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 
-from . import odoo
+from . import odoo, team_repos
 from .config import Config
 from .github import GitHub, GitHubError
 from .store import Store, decode, should_index
@@ -82,13 +82,30 @@ class Syncer:
         self.gh = gh or GitHub(cfg.github_token)
         self.progress = progress or (lambda msg, frac=None: None)
         self.cancel = cancel or threading.Event()
+        self.team_changed = False
+        self.team_error = ""
 
     def _check_cancel(self):
         if self.cancel.is_set():
             raise Cancelled()
 
+    def apply_team_list(self) -> bool:
+        """Follow the team repository list (repos.txt) before updating; True when the sources changed."""
+        self.team_changed = False
+        try:
+            entries = team_repos.fetch(self.cfg, self.gh)
+        except Exception as e:  # an unreadable list must not stop the update
+            self.team_error = str(e)
+            return False
+        if entries is not None:
+            self.team_changed = team_repos.apply(self.cfg, entries)
+        return self.team_changed
+
     def run(self) -> list[SyncResult]:
         results = []
+        self.team_error = ""
+        self.progress(team_repos.FILE, 0.0)
+        self.apply_team_list()
         wanted = planned_sources(self.cfg)
         # forget repositories that were removed from the settings
         keep = {r for r, _, _ in wanted} | ({LOCAL_KNOWLEDGE} if self.cfg.knowledge.mode == "folder" else set())

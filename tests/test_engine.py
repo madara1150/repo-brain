@@ -599,3 +599,68 @@ def test_updater_download_verifies_checksum(monkeypatch):
     monkeypatch.setattr(updater, "_open", fake_open("0" * 64))
     with pytest.raises(updater.UpdateError):
         updater.download(rel)
+
+
+def test_team_repo_list_parse_apply_and_sync(tmp_path):
+    from app import team_repos
+    from app.config import Config, Knowledge, Source, load_config, save_config
+    from app.sync import Syncer
+    text = "# comment\nme/erp 16.0\nhttps://github.com/OCA/web.git 16.0  # ui\nme/erp\n\nbad line here\n"
+    assert team_repos.parse(text) == [("me/erp", "16.0"), ("OCA/web", "16.0")]
+
+    cfg = Config(sources=[Source("me/mine", ""), Source("OCA/web", ""), Source("old/team", "", team=True)])
+    assert team_repos.apply(cfg, team_repos.parse(text))
+    assert [(s.repo, s.branch, s.team) for s in cfg.sources] == [
+        ("me/erp", "16.0", True), ("OCA/web", "16.0", True), ("me/mine", "", False)]
+    assert not team_repos.apply(cfg, team_repos.parse(text))  # already in step
+
+    # folder knowledge: publish writes repos.txt, a fresh copy picks it up on Update
+    folder = tmp_path / "kb"
+    folder.mkdir()
+    owner = Config(sources=[Source("me/erp", "16.0")], knowledge=Knowledge(mode="folder", folder=str(folder)))
+    team_repos.publish(owner)
+    assert "me/erp 16.0" in (folder / "repos.txt").read_text()
+    member = Config(knowledge=Knowledge(mode="folder", folder=str(folder)))
+    store = make_store()
+    syncer = Syncer(member, store, FakeGitHub({"c1": V1}, "c1"))
+    res = syncer.run()
+    assert syncer.team_changed and [s.repo for s in member.sources] == ["me/erp"]
+    assert {r.repo: r.mode for r in res}["me/erp"] == "full"
+    assert store.read_file("local/knowledge", "repos.txt") is None  # settings, not a note
+    save_config(member)
+    assert load_config().sources[0].team is True
+
+
+def test_team_repo_list_on_github():
+    from app import team_repos
+    from app.config import Config, Knowledge, Source
+    from app.github import GitHubError
+
+    class GH:
+        def __init__(self, files):
+            self.files, self.put = files, []
+
+        def default_branch(self, repo):
+            return "main"
+
+        def raw_file(self, repo, ref, path):
+            if path not in self.files:
+                raise GitHubError("Not found", 404)
+            return self.files[path].encode()
+
+        def file_sha(self, repo, branch, path):
+            if path not in self.files:
+                raise GitHubError("Not found", 404)
+            return "sha1"
+
+        def put_file(self, repo, branch, path, content, message, sha=""):
+            self.put.append((path, sha))
+            self.files[path] = content.decode()
+
+    k = Knowledge(mode="github", repo="me/kb", branch="main")
+    gh = GH({})
+    assert team_repos.fetch(Config(knowledge=k), gh) is None  # no list yet: leave sources alone
+    team_repos.publish(Config(sources=[Source("me/erp", "16.0")], knowledge=k), gh)
+    team_repos.publish(Config(sources=[Source("me/erp", "16.0"), Source("OCA/web", "16.0")], knowledge=k), gh)
+    assert gh.put == [("repos.txt", ""), ("repos.txt", "sha1")]
+    assert team_repos.fetch(Config(knowledge=k), gh) == [("me/erp", "16.0"), ("OCA/web", "16.0")]

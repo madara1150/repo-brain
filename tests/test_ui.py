@@ -144,3 +144,16 @@ def test_update_banner(win, monkeypatch):
     win.upd_worker.wait(5000)
     QApplication.processEvents()
     assert infos and win.up_banner.isHidden()
+
+
+def test_team_list_rows_are_marked_and_kept(win, monkeypatch):
+    from app.config import Source
+    from app.ui import main_window as mw
+    shown = []
+    monkeypatch.setattr(mw, "info", lambda *a, **k: shown.append(a[2]))
+    win.cfg.sources = [Source("me/erp", "16.0", team=True), Source("me/mine")]
+    win._fill_sources()
+    assert win.table.item(0, 0).text().startswith("👥") and not win.table.item(1, 0).text().startswith("👥")
+    win.table.selectRow(0)
+    win._remove_repo()
+    assert len(win.cfg.sources) == 2 and "me/erp" in shown[0]

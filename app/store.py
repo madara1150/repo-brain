@@ -56,7 +56,7 @@ def should_index(path: str, size: int, kind: str = "code") -> bool:
         return False
     ext = posixpath.splitext(low)[1]
     if kind == "knowledge":
-        return ext in KNOWLEDGE_EXT
+        return ext in KNOWLEDGE_EXT and low != "repos.txt"  # the team repository list is settings, not a note
     if ext not in TEXT_EXT or low.endswith((".min.js", ".min.css", ".pot")):
         return False
     if ext == ".po" and posixpath.basename(low) != "th.po":  # Thai labels help map Thai questions to fields

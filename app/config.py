@@ -9,7 +9,7 @@ from dataclasses import asdict, dataclass, field
 APP_NAME = "Repo Brain"
 APP_ID = "RepoBrain"
 MCP_NAME = "repo-brain"
-VERSION = "1.0.6"
+VERSION = "1.0.7"
 
 
 def data_dir() -> str:
@@ -40,6 +40,7 @@ def index_path() -> str:
 class Source:
     repo: str                 # "owner/name"
     branch: str = ""          # empty = the repository's default branch
+    team: bool = False        # comes from the team list (repos.txt in the shared knowledge location)
 
 
 @dataclass
@@ -73,7 +74,7 @@ class Config:
     @classmethod
     def from_json(cls, data: dict) -> "Config":
         cfg = cls()
-        cfg.sources = [Source(repo=s.get("repo", ""), branch=s.get("branch", ""))
+        cfg.sources = [Source(repo=s.get("repo", ""), branch=s.get("branch", ""), team=bool(s.get("team")))
                        for s in data.get("sources", []) if s.get("repo")]
         k = data.get("knowledge") or {}
         cfg.knowledge = Knowledge(**{f: k[f] for f in Knowledge.__dataclass_fields__ if f in k})
